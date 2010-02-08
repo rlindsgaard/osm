@@ -30,3 +30,7 @@ har samme højeste prioritet returneres det af dem, som først blev indsat.
 Hvis køen er tom, returneres 'NULL'.
 */
 void *pqueue_remove(pqueue_t *pq);
+
+void print_struct(entry_t *p,int line);
+
+#include "pqueue.c"
