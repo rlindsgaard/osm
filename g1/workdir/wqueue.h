@@ -1,4 +1,7 @@
-#include <pqueue.h>
+#ifndef WQUEUE_INIT_GUARD
+#define WQUEUE_INIT_GUARD
+
+#include "pqueue.h"
 
 #define WQUEUE_INIT PQUEUE_INIT
 
@@ -12,8 +15,11 @@ wqueue_t er simpelthen bare en prioritetskø, som indeholder
 arbejdsopgaver.
 */
 typedef pqueue_t wqueue_t;
+
+typedef struct job job_t;
+
 struct job {
-  work_f *func;
+  work_f func;
   void * data;
 };
 
@@ -32,3 +38,8 @@ Udfører et stykke arbejde fra køen.
 Hvis køen er tom returneres '0', ellers '1'.
 */
 int wqueue_run(wqueue_t *wq);
+
+void print_data(void *s);
+
+void wqueue_test(wqueue_t *wq, int a, int b, int pri);
+#endif //WQUEUE_INIT_GUARD

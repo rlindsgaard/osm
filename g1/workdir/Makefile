@@ -2,7 +2,7 @@ CC			=gcc
 CFLAGS 		=-Wall -pedantic -std=c99 -ggdb
 LDFLAGS		=-lpthread
 EXECUTABLE	=threadexample
-SOURCES		=main.c pqueue.c
+SOURCES		=main.c pqueue.c wqueue.c
 
 default: $(EXECUTABLE)
 

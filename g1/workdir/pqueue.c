@@ -19,9 +19,9 @@ int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
   current = pq->e;
   //Create new entry
   entry_t *new_elem;
-  new_elem = malloc(sizeof(entry_t));
+  new_elem = calloc(1,sizeof(entry_t));
   if(new_elem == NULL)  //assert that we get allocated memory
-    return NULL; 
+    return -1; 
   new_elem->pri = pri;
   new_elem->elem = elem;
   new_elem->next = NULL;
@@ -56,6 +56,8 @@ void *pqueue_remove(pqueue_t *pq)
    * 5. Profit
    */
 
+  if(pq->e == NULL)
+    return NULL;
   void *t_elem;
   entry_t *t_entry;
 
