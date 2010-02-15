@@ -6,15 +6,20 @@
 \usepackage{palatino}
 \linespread{1.05}
 \title{Operativsystemer og Multiprogrammering\\G-opgave 1}
-\author{Ronni Elken Lindsgaard - 0911831791 \\
-Hans-Kristian Bjerregaard - 061262087}
+\author{Ronni Elken Lindsgaard - 0911831791 \and
+Hans-Kristian Bjerregaard - 0612862087}
 \date{16. februar, 2010}
 \begin{document}
 \maketitle
 \newpage
 \section{Prioriteret kø}
 \subsection{Overvejelser}
+Før vi begyndte at implementere køen havde gjorde vi os nogle overvejelser om hvordan det skulle gøres. Den umiddelbare løsning er en liste af elementer der kan traverseres igennem når et element skal indsættes. Når et element fjernes kan dette gøres i hurtigt ved bare at kappe hovedet af. Resultatet er at indsættelse af elementer får køretidskompleksiteten $O(n)$ medens udtrækning af et element kan gøres i konstant tid.
+En anden mulighed er at implementere en hob. Dette giver dog nogle problemer. Opgavebeskrivelsen siger at opgaver med samme prioritet skal trækkes ud efter \emph{first-in-first-out} princippet. Med en min-kø kan dette være svært at opretholde, da vi bobler elementer ned arbitrært. Fordelen er dog at indsættelse kan begrænses til $O(\log{n})$ tid, og det vil tage samme tid at fjerne elementer da køen skal opretholdes. En måde hvorpå FIFO kan opretholdes vil være at lave en hob kombineret med en linket liste, således at hver prioritet er sorteret i hoben. Selve de $x$ antal processer som har prioritet $y$ ligger så i en linket liste. 
+Mulighederne er mange, og der rig mulighed for alskens optimeringer. Grundet opgavens omfang har vi valgt at nøjes med at implementere en simpelt linket liste og beskrive.
+Starvation-problematikken indgår ikke som sådan i opgavebeskrivelsen, men indgår implicit i én af kravene da vi skal {\it sikre os at alle job bliver udført}. Starvation handler kort og godt om at vi skal sikre os at processer med lav prioritet alligevel vil blive kørt inden for en overskuelig tidsramme. Igen kan man sikre sig dette på mange måder, en simpel fremgangsmåde som vi har valgt er at give pqueue en counter. Nye elementer får så counterens værdi. Ved ved hver 20ende gennemkørsel køres samtlige jobs igennem og jobs der er ældre end sidste gennemkørsel får sat prioriteten op. FIFO princippet bliver holdt da det f.eks. er de første elementer med prioritet 5 som så vil blive sat sidst for prioritet 4.
 \subsection{Beskrivelse af implementering}
+
 \subsection{Kørsel af tests}
 \section{Prioriteret arbejdskø}
 \subsection{Overvejelser}
