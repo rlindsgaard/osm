@@ -50,11 +50,10 @@ int wqueue_run(wqueue_t *wq) {
 
 void print_data(void *s)
 {
-
   printf("Result: %s\n",(char *) s);
 }
 
-void wqueue_test(wqueue_t *wq, int a, int b, int pri)
+void wqueue_add(wqueue_t *wq, int a, int b, int pri)
 {
   void * s;
   s = calloc(5,sizeof(char));

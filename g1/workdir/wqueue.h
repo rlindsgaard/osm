@@ -41,5 +41,5 @@ int wqueue_run(wqueue_t *wq);
 
 void print_data(void *s);
 
-void wqueue_test(wqueue_t *wq, int a, int b, int pri);
+void wqueue_add(wqueue_t *wq, int a, int b, int pri);
 #endif //WQUEUE_GUARD

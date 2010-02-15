@@ -42,6 +42,8 @@ Hans-Kristian Bjerregaard - 0612862087}
       Da prioritetskøen er implementeret som en linket liste, sorteret efter elementernes prioritet, (incl. FIFO) er det altså listens hoved der skal returneres.
       Derved skal der bare tjekkes om listen er tom og returneres {\it NULL} hvis det er tilfældet.
       Ellers returneres hovedet og prioritetskøen sættes til at pege på det næste element, som nu er listens hovede.
+    \subsubsection{Afprøvning}
+     Testene beror på om elementer bliver lagt til og trukket fra i den korrekte orden. Vi tester først om et element med en prioritet bliver indsat det korrekt sted. Derefter tester vi om remove virkelig fjerner listens hoved og opdaterer queuen korrekt.
 
 \section{Prioriteret arbejdskø (wqueue)}
   \subsection{Implementering}
@@ -54,6 +56,11 @@ Hans-Kristian Bjerregaard - 0612862087}
     \subsubsection{wqueue\_run}
       For at køre et job hentes det først ud af prioritetskøen.
       Er denne tom returneres 0 ellers hentes funktionen og dataene ud af jobbet og funktionen køres med de hentede data som input.
+    \subsubsection{wqueue\_add}
+      To tal skal lægges sammen, konverteres til en streng og selve opgaven at printe resultatet skal lægges i køen. For at sikre det er præcis den data som vi tilføjer der bliver lagret er det nødvendigt at allokere plads. Vi har valgt at allokere 5 chars da det bør være rigeligt til at repræsentere resultatet som en streng. Herefter kaldes wqueue\_insert som sørger for at lægge det i køen.
+
+    \subsubsection{Afprøvning}
+     I stedet for simpel data skal der nu udføres wqueue\_add i stedet som sørger for at lægge de 2 heltalt sammen. Vi har valgt at teste at jobsne bliver udført i den korrekte rækkefølge i form af hvilken prioritet de har. Vi kunne have udført mere grundige tests, men de tests vil handle om pqueue som allerede er testet.
 
 \end{document}
  
