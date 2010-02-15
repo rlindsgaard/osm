@@ -1,5 +1,5 @@
-#ifndef PQUEUE_INCLUDE_GUARD
-#define PQUEUE_INCLUDE_GUARD
+#ifndef PQUEUE_GUARD
+#define PQUEUE_GUARD 1
 #define PQUEUE_INIT {NULL}
 
 /*
@@ -37,4 +37,4 @@ void *pqueue_remove(pqueue_t *pq);
 void print_struct(entry_t *p,int line);
 void pqueue_starve(pqueue_t *pq);
 void pqueue_print(pqueue_t *pq);
-#endif //PQUEUE_INCLUDE_GUARD
+#endif //PQUEUE_GUARD

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "pqueue.h"
-
+#include "wqueue.h"
 struct entry {
   int pri;
   int age;
@@ -60,13 +60,13 @@ void *pqueue_remove(pqueue_t *pq)
     return NULL;
   void *t_elem;
   entry_t *t_entry;
-
   t_entry = pq->e;
+  
+  
   t_elem = t_entry->elem;
   pq->e = t_entry->next;
 
   free(t_entry);
-
   return t_elem;
 }
 

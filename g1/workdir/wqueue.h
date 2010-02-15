@@ -1,5 +1,5 @@
-#ifndef WQUEUE_INIT_GUARD
-#define WQUEUE_INIT_GUARD
+#ifndef WQUEUE_GUARD
+#define WQUEUE_GUARD 1
 
 #include "pqueue.h"
 
@@ -42,4 +42,4 @@ int wqueue_run(wqueue_t *wq);
 void print_data(void *s);
 
 void wqueue_test(wqueue_t *wq, int a, int b, int pri);
-#endif //WQUEUE_INIT_GUARD
+#endif //WQUEUE_GUARD
