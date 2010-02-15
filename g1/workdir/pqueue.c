@@ -1,7 +1,11 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include "pqueue.h"
 
 struct entry {
   int pri;
-  entry_t *next;
+  int age;
+  entry_t * next;
   void *elem;
 };
 
@@ -9,23 +13,25 @@ int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
 {
   entry_t *previous;
   entry_t *current;
-  if(pq == NULL)
-    return -1;
+  if(pq->counter > 0 && pq->counter % 20 == 0)
+    pqueue_starve(pq);
+  pq->counter++;
   current = pq->e;
-
   //Create new entry
   entry_t *new_elem;
   new_elem = malloc(sizeof(entry_t));
   if(new_elem == NULL)  //assert that we get allocated memory
-    return -1; 
+    return NULL; 
   new_elem->pri = pri;
   new_elem->elem = elem;
   new_elem->next = NULL;
+  new_elem->age = pq->counter;
 
   previous = NULL;
   //Run through the sorted list
   while(current != NULL && pri >= current->pri)
   {
+
     previous = current;
     current = current->next;
   }
@@ -52,8 +58,6 @@ void *pqueue_remove(pqueue_t *pq)
 
   void *t_elem;
   entry_t *t_entry;
-  if(pq == NULL || pq->e == NULL)
-    return -1;
 
   t_entry = pq->e;
   t_elem = t_entry->elem;
@@ -62,6 +66,29 @@ void *pqueue_remove(pqueue_t *pq)
   free(t_entry);
 
   return t_elem;
+}
+
+void pqueue_starve(pqueue_t *pq)
+{
+  entry_t *current;
+  current = pq->e;
+  entry_t *last_pri;
+  entry_t *previous;
+
+  while(current != NULL)
+  {
+    if(current->pri > previous->pri)
+      last_pri = previous;
+    if(pq->counter - current->age > 20)
+    {
+      current->pri++;
+      previous->next = current->next;
+      current->next = last_pri->next;
+      last_pri->next = current;
+    }
+    previous = current;
+    current = current->next;
+  }
 }
 
 void pqueue_print(pqueue_t *pq)
