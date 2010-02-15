@@ -12,6 +12,10 @@ wqueue_t er simpelthen bare en prioritetskø, som indeholder
 arbejdsopgaver.
 */
 typedef pqueue_t wqueue_t;
+struct job {
+  work_f *func;
+  void * data;
+};
 
 /*
 Indsætter et stykke arbejde i form af en funktion 'func' og det
