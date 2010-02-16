@@ -84,6 +84,7 @@ void pqueue_starve(pqueue_t *pq)
     if(pq->counter - current->age > 20)
     {
       current->pri++;
+      current->age = pq->counter;
       previous->next = current->next;
       current->next = last_pri->next;
       last_pri->next = current;
