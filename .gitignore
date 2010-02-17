@@ -1,0 +1,4 @@
+*.so
+*.o
+a.out
+core.*
