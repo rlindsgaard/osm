@@ -1,19 +1,20 @@
 CC			=gcc
 CFLAGS 		=-Wall -pedantic -std=c99 -ggdb
-LDFLAGS		=-lpthread
-EXECUTABLE	=threadexample
-SOURCES		=main.c pqueue.c wqueue.c pqueue-test.c
+LDFLAGS		= -lpthread
+PWD 		=$(shell basename `pwd`)
+SRC_FILES	=$(shell find . -name "*.c")
+SUB_TARGETS	=$(shell find . -name "*.[ch]")
 
-default: $(EXECUTABLE)
+default: $(PWD)
 
-$(EXECUTABLE): $(SOURCES) 
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(EXECUTABLE) $(SOURCES)
+$(PWD): $(SUB_TARGETS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(SRC_FILES)
 
-run: $(EXECUTABLE)
-	./$(EXECUTABLE)
+run: $(PWD)
+	./$(PWD)
+	
+totalitarian: 
+	splint -strict $(SRC_FILES) 
 
 clean:
-	rm -r $(EXECUTABLE) $(EXECUTABLE).dSYM
-
-totalitarian: 
-	splint -strict -preproc $(SOURCES)
+	rm -r $(PWD) $(PWD).dSYM
