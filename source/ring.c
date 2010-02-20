@@ -1,49 +1,87 @@
 #include <pthread.h>
 #include <stdio.h>
-#define NUM_THREADS     5
-
-int i =0;
-pthread_mutex_t mutexsum;
-pthread_mutex_t count_mutex;
-pthread_cond_t count_threshold_cv;
+#include <stdlib.h>
+#include "ring.h"
 
 
-void *PrintHello(void *threadid)
+int main()
 {
-   long tid;
-   pthread_mutex_lock(&count_mutex);
-   
-   tid = (long)threadid;
-   int r = i % NUM_THREADS;
-   while(tid == r) {  
-     pthread_cond_wait(&count_threshold_cv, &count_mutex) ;
-   
-       printf("Hello World! It's me, thread #%ld!\n %d\n", tid,i);
-     i++;
-     pthread_cond_signal(&count_threshold_cv);
-   }
-   pthread_mutex_unlock(&count_mutex);
-    pthread_exit(NULL);
+  //Initializing variables
+  pthread_t threads[NUM_THREADS];
+  int *baton = calloc(1,sizeof(int));
+  int rc;
+  *baton = 1;
 
+  //Doing some work
+  for(int t=0;t < NUM_THREADS; t++)
+  {
+    //Fill in the data segment
+    data_t *data = calloc(1,sizeof(data_t));
+    data->tid = t;
+    data->baton = baton;
+    data->next = (t+1) % NUM_THREADS;
+    //printf("Next is: %d\n",data->next);
+
+    pthread_mutex_init(&locks[t],NULL);
+    pthread_mutex_lock(&locks[t]);
+
+    if(t==0)
+    {
+      rc = pthread_create(&threads[t],NULL,padlock,(void*)data);
+    } else {
+       rc = pthread_create(&threads[t],NULL,link,(void*)data);
+    }
+    if(rc)
+    {
+         printf("ERROR; return code from pthread_create() is %d\n", rc);         
+    }
+  }
+  printf("Initialising %d",0);
+  pthread_mutex_unlock(&locks[0]);
+  pthread_exit(NULL);
+//  pthread_mutex_unlock(&locks[0]);
+  
+  //Cleaning up
+  free(baton);
+//  free(thread_data);
+//  free(threads);
 }
 
-int main (int argc, char *argv[])
+void * link(void * arg)
 {
-  /* Initialize mutex and condition variable objects */
-  pthread_mutex_init(&count_mutex, NULL);
-  pthread_cond_init (&count_threshold_cv, NULL);
+  data_t *data = (data_t*) arg;
+  printf("Thread is initialised %d, next is %d\n",data->tid,data->next);
+  do {
+    printf("Baton is %d\n",*data->baton);
+    pthread_mutex_lock(&locks[data->tid]);
+    worker(arg);
+//    printf("I'm thread number %ld starting for the %d time\n",d.tid,d.count);   
+    pthread_mutex_unlock(&locks[data->next]);
+  } while(*data->baton);
+  printf("Exiting %d\n",data->tid);
+  pthread_exit(NULL);
+}
 
-   pthread_t threads[NUM_THREADS];
-   int rc;
-   long t;
-   for(t=0; t<NUM_THREADS; t++){
-      printf("In main: creating thread %ld\n", t);
-      rc = pthread_create(&threads[t], NULL, PrintHello, (void *)t);
-      if (rc){
-         printf("ERROR; return code from pthread_create() is %d\n", rc);
-         
-      }
-   }
-   pthread_exit(NULL);
-   i=0;
+void * padlock(void *arg)
+{
+  data_t *data = (data_t*) arg;
+  int count = 0;
+  while(count < NUM_RUNS)
+  {
+    pthread_mutex_lock(&locks[data->tid]);
+    printf("I'm thread number %d starting for the %d time. Starting thread %d\n",data->tid,count,data->next);   
+    count++;
+    pthread_mutex_unlock(&locks[data->next]);
+  }
+  *data->baton = 0;
+  pthread_mutex_unlock(&locks[data->next]);
+  pthread_exit(NULL);
+}
+
+void * worker(void * arg)
+{
+  data_t *data = (data_t*) arg;
+  printf("Doing some work for thread: %d, the baton is %d\n",(int) data->tid,(int) *data->baton);
+  for(int i=0;i<100;i++){}
+  //sleep(1);
 }
