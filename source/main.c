@@ -10,7 +10,6 @@ printf("-------------------------------\n");
 
  wq = malloc(sizeof(pqueue_t));
  wq->e = NULL;
- wq->counter = 0;
 
 printf("wqueue tests:\n");
 wqueue_add(wq,2,3,3);

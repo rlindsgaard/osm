@@ -6,7 +6,6 @@ void pqueue_test()
  pqueue_t * pq;
  pq = malloc(sizeof(pqueue_t));
  pq->e = NULL;
- pq->counter = 0;
 
 printf("-------------------------------\n");
 printf("pqueue tests\n");

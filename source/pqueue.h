@@ -12,7 +12,6 @@ typedef struct pqueue pqueue_t;
 typedef struct entry entry_t;
 
 struct pqueue {
-    int counter;
     entry_t *e;
 };
 
@@ -35,6 +34,5 @@ Hvis køen er tom, returneres 'NULL'.
 void *pqueue_remove(pqueue_t *pq);
 
 void print_struct(entry_t *p,int line);
-void pqueue_starve(pqueue_t *pq);
 void pqueue_print(pqueue_t *pq);
 #endif //PQUEUE_GUARD

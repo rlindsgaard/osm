@@ -15,6 +15,7 @@ int wqueue_insert(wqueue_t *wq, unsigned int pri, work_f func, void *data) {
   w = calloc(1,sizeof(job_t));
   if (w == NULL)
     return -1;
+
   // create job
   w->func = *func;
   w->data = data;
@@ -45,9 +46,18 @@ int wqueue_run(wqueue_t *wq) {
   // run function
   func(data);
   free(w); //the element is of no use to us any longer
+
   return 1;
 }
 
+
+
+
+
+
+/*
+ * Secondary function primary for test use.
+ */
 void print_data(void *s)
 {
   printf("Result: %s\n",(char *) s);

@@ -39,6 +39,14 @@ Hvis køen er tom returneres '0', ellers '1'.
 */
 int wqueue_run(wqueue_t *wq);
 
+
+
+
+
+
+/*
+ * Test fundtions
+ */
 void print_data(void *s);
 
 void wqueue_add(wqueue_t *wq, int a, int b, int pri);
