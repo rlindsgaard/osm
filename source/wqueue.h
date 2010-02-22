@@ -39,9 +39,17 @@ Hvis køen er tom returneres '0', ellers '1'.
 */
 int wqueue_run(wqueue_t *wq);
 
+/*
+ * A tread safe version of wqueue_insert()
+ */
+int wqueue_ts_insert(wqueue_t *wq, unsigned int pri, work_f func, void *data);
 
+/*
+ *
+ */
+int wqueue_thread_pool();
 
-
+void wqueue_thread(void *args);
 
 
 /*
