@@ -9,6 +9,11 @@ pthread_mutex_t working_lock;
 
 int threads_working;
 
+struct thread_args {
+  wqueue_t *wq;
+  int id;
+};
+
 
 /*
 Indsætter et stykke arbejde i form af en funktion 'func' og det
@@ -78,6 +83,7 @@ int wqueue_ts_insert(wqueue_t *wq, unsigned int pri, work_f func, void *data) {
  */
 int wqueue_thread_pool(wqueue_t *wq, int no_threads)
 {
+  fflush(stdout);
   no_threads = 10;
   threads_working = 0;
   pthread_t thread_ID[10];
@@ -88,30 +94,43 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
   // initialize threads
   int i = 0;
   int error_code;
+  printf("\tInitializing threads\n");
   while (i < no_threads)
   {
-    error_code = pthread_create(&thread_ID[i], NULL, wqueue_thread, NULL);
-    if (error_code) 
-      printf("ERROR: return code from pthread_create() is %d\n", error_code);
+    printf("\t\tCreating thread with id: %d\n", i); 
+    thread_args_t *args = calloc(1,sizeof(thread_args_t));
+    args->wq = wq;
+    args->id = i;
+
+    error_code = pthread_create(&thread_ID[i], NULL, wqueue_thread, args);
+    if (error_code)
+      printf("\t\tERROR: return code from pthread_create() is %d\n", error_code);
 
     i++;
   }
 
   // clean up
+  printf("\tJoining threads\n");
   i = 0;
   while (i < no_threads)
-  {
-    pthread_join(thread_ID[i],NULL);
+  { 
+    printf("\t\tJoining thread with id: %d\n", i); 
+    pthread_cond_signal(&more_work);
+    pthread_join(thread_ID[i], NULL);
+    i++;
   }
 
   return 1;
 }
 
-void wqueue_thread(void *args)
+void* wqueue_thread(void *args)
 {
-  wqueue_t *wq = args;
+  thread_args_t *thread_args = args;
+  wqueue_t *wq = thread_args->wq;
+  int id = thread_args->id;
   int result;
 
+  printf("\t\t\tThread %d starting up\n", id);
   while (threads_working || wq->e != NULL) 
   {
       pthread_mutex_lock(&working_lock);
@@ -126,22 +145,33 @@ void wqueue_thread(void *args)
       pthread_mutex_unlock(&working_lock);
 
       // wait for signal
+      printf("\t\t\tThread %d checking for more work\n", id);
       pthread_mutex_lock(&more_work_lock);
 
-      if (&result == NULL && threads_working)
+      while(result == 0 && threads_working) {
+        printf("\t\t\tThread %d sleeping\n", id);
         pthread_cond_wait(&more_work, &more_work_lock);
+      }
 
       pthread_mutex_unlock(&more_work_lock);
+      printf("\t\t\tThread %d requesting more work\n", id);
   }
+
+  printf("\t\t\tThread %d shutting down\n", id);
+  pthread_cond_signal(&more_work);
+  return NULL;
 }
 
 
 /*
  * Secondary function primary for test use.
  */
+
+
 void print_data(void *s)
 {
   printf("Result: %s\n",(char *) s);
+  sleep(1);
 }
 
 void wqueue_add(wqueue_t *wq, int a, int b, int pri)
@@ -149,7 +179,13 @@ void wqueue_add(wqueue_t *wq, int a, int b, int pri)
   void * s;
   s = calloc(5,sizeof(char));
   sprintf(s,"%d",a+b);
-  wqueue_insert(wq,pri,print_data,s);
+  
+  int o=6;
+  while(o!=0)
+  {
+  wqueue_ts_insert(wq,pri,print_data,s);
+  o--;
+  }
 }
 
 
