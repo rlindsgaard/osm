@@ -7,12 +7,18 @@
 \linespread{1.05}
 \title{Operativsystemer og Multirogrammering \\G-opgave 2}
 \author{Ronni Elken Lindsgaard - 0911831791 \and
-Hans-Kristian Bjerregaard 0612862087 \and
-Alexander Winther Uldall 290887-2013}
+Hans-Kristian Bjerregaard - 0612862087 \and
+Alexander Winther Uldall - 2908872013}
 \date{23. februar, 2010}
 \begin{document}
 \maketitle
 \newpage
+\section{En ring af tråðe}
+I ring.h er defineret to datastrukturer; data og baton. Baton er den stafet som bliver delt mellem trådene, helt specifikt er den et specifikt adresserum som de alle kan tilgå efter tur.
+Data definerer et datasegment for den specifikke tråd som fortæller dens id, dens condition, hvem der er den næste i rækken og hvor den skal finde sit delte adresserum.
+Ved initialisering bliver datasegmenter og stafetten skabt og der sørges for at alle tråde er låst til at starte med.
 
+Inde i tråden låser tråden først mutexen hvorefter den finder ud af om det egentlig er dens tur til at køre ved at teste om dens id er lig det id der skal køre hvis ikke sender den signal til den næste tråd der så forsøger på det samme. Dette fortsætter den med hver gang det ikke er dens egen tur.
+Hvis det rent faktisk er den tråd der skal køre
 \end{document}
 
