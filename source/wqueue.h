@@ -15,8 +15,8 @@ wqueue_t er simpelthen bare en prioritetskø, som indeholder
 arbejdsopgaver.
 */
 typedef pqueue_t wqueue_t;
-
 typedef struct job job_t;
+typedef struct thread_args thread_args_t;
 
 struct job {
   work_f func;
@@ -49,7 +49,7 @@ int wqueue_ts_insert(wqueue_t *wq, unsigned int pri, work_f func, void *data);
  */
 int wqueue_thread_pool();
 
-void wqueue_thread(void *args);
+void* wqueue_thread(void *args);
 
 
 /*

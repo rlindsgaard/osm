@@ -4,7 +4,7 @@
 #include "ring.h"
 
 
-int main()
+int _main()
 {
   //Initializing variables
   pthread_t threads[NUM_THREADS];

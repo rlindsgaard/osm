@@ -3,9 +3,8 @@
 #include <pthread.h>
 #include "wqueue.h"
 
-pthread_mutex_t pqueue_lock;
-
-pthread_mutex_init(&pqueue_lock, NULL);
+// global init for mutex
+pthread_mutex_t pqueue_lock = PTHREAD_MUTEX_INITIALIZER;
 
 struct entry {
   int pri;
