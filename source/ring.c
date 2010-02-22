@@ -36,6 +36,10 @@ int main()
          printf("ERROR; return code from pthread_create() is %d\n", rc);         
     }
   }
+  for(int i=0;i < NUM_THREADS; i++)
+  {
+    pthread_join(&threads[i],NULL);
+  }
   printf("Initialising %d",0);
   pthread_mutex_unlock(&locks[0]);
   pthread_exit(NULL);
@@ -49,15 +53,19 @@ int main()
 
 void * link(void * arg)
 {
+  int baton;
   data_t *data = (data_t*) arg;
   printf("Thread is initialised %d, next is %d\n",data->tid,data->next);
   do {
     printf("Baton is %d\n",*data->baton);
+    
     pthread_mutex_lock(&locks[data->tid]);
     worker(arg);
+    baton = *data->baton;
 //    printf("I'm thread number %ld starting for the %d time\n",d.tid,d.count);   
     pthread_mutex_unlock(&locks[data->next]);
-  } while(*data->baton);
+  } while(baton);
+//  pthread_mutex_unlock(&locks[data->next]);
   printf("Exiting %d\n",data->tid);
   pthread_exit(NULL);
 }
@@ -73,6 +81,8 @@ void * padlock(void *arg)
     count++;
     pthread_mutex_unlock(&locks[data->next]);
   }
+  pthread_mutex_lock(&locks[data->tid]);
+    printf("I'm thread number %d starting for the %d time. Starting thread %d\n",data->tid,count,data->next);   
   *data->baton = 0;
   pthread_mutex_unlock(&locks[data->next]);
   pthread_exit(NULL);
