@@ -79,7 +79,7 @@ int wqueue_ts_insert(wqueue_t *wq, unsigned int pri, work_f func, void *data) {
 int wqueue_thread_pool(wqueue_t *wq, int no_threads)
 {
   no_threads = 10;
-  int threads_working = 0;
+  threads_working = 0;
   pthread_t thread_ID[10];
 
   pthread_cond_init(&more_work, NULL);
@@ -90,7 +90,7 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
   int error_code;
   while (i < no_threads)
   {
-    error_code = pthread_create(thread_ID[i], NULL, wqueue_thread, NULL);
+    error_code = pthread_create(&thread_ID[i], NULL, wqueue_thread, NULL);
     if (error_code) 
       printf("ERROR: return code from pthread_create() is %d\n", error_code);
 
@@ -98,10 +98,10 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
   }
 
   // clean up
-  int i = 0;
+  i = 0;
   while (i < no_threads)
   {
-    pthread_join(thread_ID[i]);
+    pthread_join(thread_ID[i],NULL);
   }
 
   return 1;
@@ -109,7 +109,7 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
 
 void wqueue_thread(void *args)
 {
-  wqueue_t *wq = args
+  wqueue_t *wq = args;
   int result;
 
   while (threads_working || wq->e != NULL) 
@@ -122,13 +122,13 @@ void wqueue_thread(void *args)
       result = wqueue_run(wq);
 
       pthread_mutex_lock(&working_lock);
-      working--;
+      threads_working--;
       pthread_mutex_unlock(&working_lock);
 
       // wait for signal
       pthread_mutex_lock(&more_work_lock);
 
-      if (result == NULL && threads_working)
+      if (&result == NULL && threads_working)
         pthread_cond_wait(&more_work, &more_work_lock);
 
       pthread_mutex_unlock(&more_work_lock);
