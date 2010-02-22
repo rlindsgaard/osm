@@ -13,6 +13,14 @@ Alexander Winther Uldall 290887-2013}
 \begin{document}
 \maketitle
 \newpage
+\section{En ring af tråde}
+Et antal tråde startes som er defineret i ring.h. For hver streng laves en datastruktur som giver tråden de informationer den har brug for, nemlig trådens egen id samtidig med den tråds id som skal udføre arbejde bagefter. Til sidst får hver tråd også en pointer til hvor i hukommelsen stafetten er gemt.
+Herefter initialiseres alle låse og trådene bliver oprettet. Den første tråd er af typen {\it padlock} og er speciel i det omfang at den kontrollerer stafettens værdi (de andre tråde må kun læse den)
+Padlock tæller hvor mange omgange der er kørt og efter et bestemt antal omgange er kørt sættes stafetten til 0 og tråden exiter.
+{\it link}=trådene fortsætter så længe staffeten er sand. For at undgå en race-condition kopieres stafettens værdi i det låste segment og testen udføres på en værdi vi er sikre på.
+For at sikre at alle tråde bliver kørt den sidste gang er indsat et ekstra unlock(next) kald i hver tråd.
+I det låste segment af {\it link} bliver desuden kaldt en funktion {\it worker} som ikke gør andet end at printe ud hvilken tråd der har kaldt den. Dette er for at symbolisere at der vil blive udført arbejde.
+
 
 \end{document}
 
