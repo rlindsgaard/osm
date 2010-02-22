@@ -31,5 +31,5 @@ void test_main()
   wqueue_add(wq,4,3,4);
 
   printf("Running threads\n");
-  wqueue_thread_pool(wq, 1);
+  wqueue_thread_pool(wq, 1);  
 }

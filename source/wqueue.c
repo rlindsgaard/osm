@@ -113,8 +113,9 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
   printf("\tJoining threads\n");
   i = 0;
   while (i < no_threads)
-  {
+  { 
     printf("\t\tJoining thread with id: %d\n", i); 
+    pthread_cond_signal(&more_work);
     pthread_join(thread_ID[i], NULL);
     i++;
   }
@@ -157,7 +158,7 @@ void* wqueue_thread(void *args)
   }
 
   printf("\t\t\tThread %d shutting down\n", id);
-
+  pthread_cond_signal(&more_work);
   return NULL;
 }
 
@@ -165,9 +166,12 @@ void* wqueue_thread(void *args)
 /*
  * Secondary function primary for test use.
  */
+
+
 void print_data(void *s)
 {
-  //printf("Result: %s\n",(char *) s);
+  printf("Result: %s\n",(char *) s);
+  sleep(1);
 }
 
 void wqueue_add(wqueue_t *wq, int a, int b, int pri)
@@ -175,7 +179,13 @@ void wqueue_add(wqueue_t *wq, int a, int b, int pri)
   void * s;
   s = calloc(5,sizeof(char));
   sprintf(s,"%d",a+b);
-  wqueue_insert(wq,pri,print_data,s);
+  
+  int o=6;
+  while(o!=0)
+  {
+  wqueue_ts_insert(wq,pri,print_data,s);
+  o--;
+  }
 }
 
 
