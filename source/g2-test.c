@@ -31,5 +31,11 @@ void test_main()
   wqueue_add(wq,4,3,4);
 
   printf("Running threads\n");
-  wqueue_thread_pool(wq, 1);  
+  int done;
+  done = wqueue_thread_pool(wq, 1);  
+  if(done==1)
+  {
+    printf("queue is empty\n");
+  }
+
 }
