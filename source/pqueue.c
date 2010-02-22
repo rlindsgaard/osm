@@ -1,7 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "pqueue.h"
+#include <pthread.h>
 #include "wqueue.h"
+
+pthread_mutex_t pqueue_lock;
+
+pthread_mutex_init(&pqueue_lock, NULL);
+
 struct entry {
   int pri;
   entry_t * next;
@@ -10,10 +15,6 @@ struct entry {
 
 int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
 {
-  entry_t *previous;
-  entry_t *current;
-  current = pq->e;
-
   // create new entry
   entry_t *new_elem;
   new_elem = calloc(1,sizeof(entry_t));
@@ -25,7 +26,13 @@ int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
   new_elem->next = NULL;
 
   // scan through the sorted list
+  entry_t *previous;
+  entry_t *current;
+
+  pthread_mutex_lock(&pqueue_lock);
+
   previous = NULL;
+  current = pq->e;
   while(current != NULL && pri >= current->pri)
   {
     previous = current;
@@ -41,6 +48,7 @@ int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
   } else {
     pq->e = new_elem;
   }
+  pthread_mutex_unlock(&pqueue_lock);
 
   return 0;
 }
@@ -51,13 +59,16 @@ void *pqueue_remove(pqueue_t *pq)
   if(pq->e == NULL)
     return NULL;
 
-  // take out head of list
   void *t_elem;
   entry_t *t_entry;
+
+  // take out pqueue head
+  pthread_mutex_lock(&pqueue_lock);
   t_entry = pq->e;
 
-  // update pqueue
+  // set pqueue head to next
   pq->e = t_entry->next;
+  pthread_mutex_unlock(&pqueue_lock);
   
   // fetch data
   t_elem = t_entry->elem;
