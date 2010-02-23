@@ -4,7 +4,7 @@
 #include "ring.h"
 
 
-int _main()
+int main()
 {
 
   //Initializing variables
@@ -29,8 +29,7 @@ int _main()
     data[t].baton = baton;
     pthread_cond_init(&data[t].cond,NULL); 
     data[t].next = (t+1 == NUM_THREADS ? data : data+t+1);
-    printf("%p\n",(void *)data[t].next);
-    printf("Initialising thread");
+    //printf("Initialising thread");
     rc = pthread_create(&threads[t],NULL,link,(void*) (data+t));
     
     if(rc)
@@ -38,7 +37,7 @@ int _main()
          printf("ERROR; return code from pthread_create() is %d\n", rc);         
     }
   }
-  printf("Initialising %d\n",0);
+  //printf("Initialising %d\n",0);
   pthread_mutex_unlock(&baton->mutex);
   for(int i=0;i < NUM_THREADS; i++)
   {
@@ -72,9 +71,9 @@ void * link(void * arg)
     if(data->tid+1 == NUM_THREADS)
       baton->counter++;
 
+   stop = baton->stop;
    if(baton->counter > NUM_RUNS)
       baton->stop = 1;
-    stop = baton->stop;
    //Do work
 
     worker(arg);
