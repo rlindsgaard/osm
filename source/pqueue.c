@@ -24,14 +24,12 @@ int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
   new_elem->elem = elem;
   new_elem->next = NULL;
 
-  // scan through the sorted list
-  entry_t *previous;
-  entry_t *current;
-
+  // dont do hybris, lock the pqueue while working on it!
   pthread_mutex_lock(&pqueue_lock);
 
-  previous = NULL;
-  current = pq->e;
+  // scan through the sorted list
+  entry_t *previous = NULL;
+  entry_t *current = pq->e;
   while(current != NULL && pri >= current->pri)
   {
     previous = current;
@@ -47,6 +45,8 @@ int pqueue_insert(pqueue_t *pq, unsigned int pri, void *elem)
   } else {
     pq->e = new_elem;
   }
+
+  // unlock the pqueue again
   pthread_mutex_unlock(&pqueue_lock);
 
   return 0;
@@ -61,12 +61,14 @@ void *pqueue_remove(pqueue_t *pq)
   void *t_elem;
   entry_t *t_entry;
 
-  // take out pqueue head
+  // lock the pqueue, take out pqueue head
   pthread_mutex_lock(&pqueue_lock);
   t_entry = pq->e;
 
   // set pqueue head to next
   pq->e = t_entry->next;
+
+  // unlock pqueue again
   pthread_mutex_unlock(&pqueue_lock);
   
   // fetch data

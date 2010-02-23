@@ -3,12 +3,13 @@
 #include <pthread.h>
 #include "wqueue.h"
 
-pthread_cond_t more_work;
-pthread_mutex_t more_work_lock;
-pthread_mutex_t working_lock;
+pthread_cond_t more_work;       // is there more work?
+pthread_mutex_t more_work_lock; // lock when listening for more work
+pthread_mutex_t working_lock;   // lock when updating the threads_working variable
 
-int threads_working;
+int threads_working;            // number of threads working right now
 
+// argument to a thread
 struct thread_args {
   wqueue_t *wq;
   int id;
@@ -79,15 +80,15 @@ int wqueue_ts_insert(wqueue_t *wq, unsigned int pri, work_f func, void *data) {
 }
 
 /*
- * 
+ * Starts a pool of treads to run the jobs in the wqueue.
  */
 int wqueue_thread_pool(wqueue_t *wq, int no_threads)
 {
-  fflush(stdout);
-  no_threads = 10;
-  threads_working = 0;
-  pthread_t thread_ID[10];
+  no_threads = 10;         // number of threads to start
+  threads_working = 0;     // number of threads currently working
+  pthread_t thread_ID[10]; // array of threat id's
 
+  // init locks
   pthread_cond_init(&more_work, NULL);
   pthread_mutex_init(&more_work_lock, NULL);
 
@@ -109,7 +110,7 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
     i++;
   }
 
-  // clean up
+  // wait for threads to terminate
   printf("\tJoining threads\n");
   i = 0;
   while (i < no_threads)
@@ -123,16 +124,22 @@ int wqueue_thread_pool(wqueue_t *wq, int no_threads)
   return 1;
 }
 
+/*
+ * Function each threads is running.
+ */
 void* wqueue_thread(void *args)
 {
+  // fetch values from thread argument
   thread_args_t *thread_args = args;
   wqueue_t *wq = thread_args->wq;
   int id = thread_args->id;
+
   int result;
 
   printf("\t\t\tThread %d starting up\n", id);
   while (threads_working || wq->e != NULL) 
   {
+      // lock working mutex, update counter and unlock again
       pthread_mutex_lock(&working_lock);
       threads_working++;
       pthread_mutex_unlock(&working_lock);
@@ -140,17 +147,18 @@ void* wqueue_thread(void *args)
       // run job
       result = wqueue_run(wq);
 
+      // again, lock working mutex, update counter and unlock
       pthread_mutex_lock(&working_lock);
       threads_working--;
       pthread_mutex_unlock(&working_lock);
 
-      // wait for signal
+      // check if there is more work to be done
       printf("\t\t\tThread %d checking for more work\n", id);
       pthread_mutex_lock(&more_work_lock);
 
-      while(result == 0 && threads_working) {
+      while(result == 0 && threads_working) { // if the queueu was empty but other threads are working
         printf("\t\t\tThread %d sleeping\n", id);
-        pthread_cond_wait(&more_work, &more_work_lock);
+        pthread_cond_wait(&more_work, &more_work_lock); // wait for job to be inserted
       }
 
       pthread_mutex_unlock(&more_work_lock);
@@ -158,7 +166,7 @@ void* wqueue_thread(void *args)
   }
 
   printf("\t\t\tThread %d shutting down\n", id);
-  pthread_cond_signal(&more_work);
+  pthread_cond_signal(&more_work); // before termination; send signal prevent deadlocks
   return NULL;
 }
 
