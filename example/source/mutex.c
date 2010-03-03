@@ -37,17 +37,17 @@ int main(void)
 
   a1.thread_name = "T1";
   a1.string = "I'll be back";
-  a1.repetitions = 20;
+  a1.repetitions = 10;
   othread_create(&t1, printer, (void *) &a1);
 
   a2.thread_name = "T2";
   a2.string = "Hasta la vista, baby!";
-  a2.repetitions = 20;
+  a2.repetitions = 3;
   othread_create(&t2, printer, (void *) &a2);
 
   a3.thread_name = "T3";
   a3.string = "I'm back";
-  a3.repetitions = 20;
+  a3.repetitions = 3;
   othread_create(&t3, printer, (void *) &a3);
 
   othread_join(t1, NULL);
