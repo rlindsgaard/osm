@@ -88,23 +88,20 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
     /* If there is at least one thread waiting in the new queue, we
        switch to the first one. Otherwise we terminate the whole
        application */
-    dlink_t *d;
-    struct tkb * elem;
-    d = dlink_remove(new);
-    elem = d->data;
-        
-    current->state = state;
-    d->data = current;
-    dlink_insert(old,d);
-    printf("current: %p elem: %p",current,elem);
-    swapcontext(&current->context,&elem->context);
-    printf(" current: %p elem: %p\n",current,elem);
-    current = elem;
-    dlink_insert(new,d);
-
- 
-     
-
+      dlink_t *d;
+      current->state = state;
+      struct tkb * old_current = current;
+      
+      d = dlink_alloc(old_current);
+      dlink_insert(old,d);
+      
+      dlink_t *new_d;
+      new_d = dlink_remove(new);
+    
+      current = new_d->data;
+      current->waiting = *old;
+      swapcontext(&old_current->context,&current->context);
+   
    /* TO IMPLEMENT: The actual switch between the current thread and
        the first thread at the head of the "new" list. Here you should
        use swapcontext as explained in the note on user level thread
@@ -231,26 +228,9 @@ int othread_yield (void)
   printf("Inside yield\n");
   if(!dlink_empty(&ready))
   {
-    dlink_head_t *dh;
-    dlink_init_head(dh);
-    print_ready(ready);
-    switch_thread(dh,&ready,WAITING);
-/*    dlink_t *d;
-    dlink_head_t *dh;
-    dlink_t * current_dlink;
-
-    dlink_init_head(dh);
-    d = dlink_alloc(current);
-    dlink_insert(dh,d);
-    printf("Current: %p\n",current);
-
-    switch_thread(&current->waiting,&ready,READY);
-    printf("New current: %p\n",current);
-    
-    current_dlink = dlink_remove(&ready);
-    current = current_dlink->data;
-    current->state = RUNNING;
-    free(current_dlink);*/
+    dlink_t *d = dlink_alloc(current);
+    dlink_insert(&ready,d);
+    switch_thread(&current->waiting,&ready,WAITING);
   }
 
   return 0;
@@ -315,6 +295,7 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 void print_ready(dlink_head_t ready)
 {
   dlink_t *d;
+  printf("Printing list");
   while(!dlink_empty(&ready))
   {
     d = dlink_remove(&ready);
