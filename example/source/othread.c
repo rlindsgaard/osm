@@ -83,11 +83,28 @@ void thread_wrapper(struct tkb *my_tkb)
    queue, we are done executing the application. */
 void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
 {
+  printf("Inside switch_thread");
   if(!dlink_empty(new)) {
     /* If there is at least one thread waiting in the new queue, we
        switch to the first one. Otherwise we terminate the whole
        application */
+    dlink_t *d;
+    struct tkb * elem;
+    d = dlink_remove(new);
+    elem = d->data;
+        
+    current->state = state;
+    d->data = current;
+    dlink_insert(old,d);
+    printf("current: %p elem: %p",current,elem);
+    swapcontext(&current->context,&elem->context);
+    printf(" current: %p elem: %p\n",current,elem);
+    current = elem;
+    dlink_insert(new,d);
+
  
+     
+
    /* TO IMPLEMENT: The actual switch between the current thread and
        the first thread at the head of the "new" list. Here you should
        use swapcontext as explained in the note on user level thread
@@ -211,6 +228,30 @@ int othread_yield (void)
      ready queue, switch between the current thread and the first one
      in the ready queue. The current thread should be placed in the
      ready queue. */
+  printf("Inside yield\n");
+  if(!dlink_empty(&ready))
+  {
+    dlink_head_t *dh;
+    dlink_init_head(dh);
+    print_ready(ready);
+    switch_thread(dh,&ready,WAITING);
+/*    dlink_t *d;
+    dlink_head_t *dh;
+    dlink_t * current_dlink;
+
+    dlink_init_head(dh);
+    d = dlink_alloc(current);
+    dlink_insert(dh,d);
+    printf("Current: %p\n",current);
+
+    switch_thread(&current->waiting,&ready,READY);
+    printf("New current: %p\n",current);
+    
+    current_dlink = dlink_remove(&ready);
+    current = current_dlink->data;
+    current->state = RUNNING;
+    free(current_dlink);*/
+  }
 
   return 0;
 }
@@ -229,6 +270,17 @@ int othread_mutex_lock (othread_mutex_t *mutex)
   if(mutex == NULL)
     return EINVAL;
 
+  if(mutex->locked)
+  {
+
+    //The mutex is locked
+    //Put it on the waiting queue
+    //Get new active thread from ready queue
+  } else {
+    //The mutex is not locked
+    //Lock the mutex
+  }
+  
   /* TO IMPLEMENT: Check whether the mutex is locked. If not lock it,
      and otherwise put the thread on the mutex wait queue and get a
      new active thread from the ready queue.*/
@@ -247,9 +299,25 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
   if(mutex == NULL)
     return EINVAL;
 
+  //Are there any threads in waiting queue?
+    //Yes
+      //Move first thread from waiting queue to ready queue.
+    //No
+      //Unlock mutex
+
   /* TO IMPLEMENT: If there are no waiting threads the mutex should be
      unlocked. Otherwise, one of the waiting threads should be moved
      to thre ready queue. */
   
   return 0;
+}
+
+void print_ready(dlink_head_t ready)
+{
+  dlink_t *d;
+  while(!dlink_empty(&ready))
+  {
+    d = dlink_remove(&ready);
+    printf("Ready element: %p\n",d->data);
+  }
 }

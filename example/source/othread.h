@@ -18,7 +18,10 @@ typedef unsigned long int othread_t;
 
 /* othread_mutex_t */
 typedef struct {
-  /* TO IMPLEMENT */
+
+  int locked; //0 if unlocked, 1 if locked
+  dlink_head_t waiting;
+
 } othread_mutex_t;
 
 
