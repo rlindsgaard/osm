@@ -83,8 +83,8 @@ void thread_wrapper(struct tkb *my_tkb)
    queue, we are done executing the application. */
 void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
 {
-  printf("Inside switch_thread");
   if(!dlink_empty(new)) {
+    printf("Ping %d\n",current);
     /* If there is at least one thread waiting in the new queue, we
        switch to the first one. Otherwise we terminate the whole
        application */
@@ -99,7 +99,10 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
       new_d = dlink_remove(new);
     
       current = new_d->data;
-      current->waiting = *old;
+//      free(new_d);
+        current->waiting = *old;
+    //    printf("swapcontext");
+      printf("old_current: %p current: %p\n",old_current,current);
       swapcontext(&old_current->context,&current->context);
    
    /* TO IMPLEMENT: The actual switch between the current thread and
@@ -171,7 +174,10 @@ void othread_exit (void *retval)
   current->retval = retval;
 
   if(!dlink_empty(&current->waiting)) {
-    dlink_insert(&ready, dlink_remove(&current->waiting));
+    dlink_t * d;
+    d= dlink_remove(&current->waiting);
+    printf("Adding new element when exiting %p\n",d->data);
+    dlink_insert(&ready,d );
   }
   /* Let othread_join handle the actual deallocation after we've
      switched to a new context - right now we are still using the
@@ -225,14 +231,15 @@ int othread_yield (void)
      ready queue, switch between the current thread and the first one
      in the ready queue. The current thread should be placed in the
      ready queue. */
-  printf("Inside yield\n");
   if(!dlink_empty(&ready))
   {
-    dlink_t *d = dlink_alloc(current);
-    dlink_insert(&ready,d);
-    switch_thread(&current->waiting,&ready,WAITING);
+    printf("Adding a new element %p\n",current);
+    dlink_insert(&ready,dlink_alloc(current));
+    
+ //   print_ready(&ready);
+    switch_thread(&current->waiting,&ready,READY);
   }
-
+  
   return 0;
 }
 
@@ -252,6 +259,10 @@ int othread_mutex_lock (othread_mutex_t *mutex)
 
   if(mutex->locked)
   {
+    current->state = WAITING;
+    dlink_insert(mutex->waiting,dlink_alloc(current));
+
+    //othread_yield();
 
     //The mutex is locked
     //Put it on the waiting queue
@@ -259,6 +270,7 @@ int othread_mutex_lock (othread_mutex_t *mutex)
   } else {
     //The mutex is not locked
     //Lock the mutex
+    mutex->locked = 1;
   }
   
   /* TO IMPLEMENT: Check whether the mutex is locked. If not lock it,
@@ -279,12 +291,14 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
   if(mutex == NULL)
     return EINVAL;
 
-  //Are there any threads in waiting queue?
-    //Yes
-      //Move first thread from waiting queue to ready queue.
-    //No
-      //Unlock mutex
-
+  if(dlink_empty(mutex->waiting))
+  {
+    mutex->locked = 0; //Unlock the mutex
+  } else {
+    dlink_t * elem;
+    elem = dlink_remove(mutex->waiting);
+    dlink_insert(&ready,elem);
+  }
   /* TO IMPLEMENT: If there are no waiting threads the mutex should be
      unlocked. Otherwise, one of the waiting threads should be moved
      to thre ready queue. */
@@ -295,10 +309,12 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 void print_ready(dlink_head_t ready)
 {
   dlink_t *d;
+
   printf("Printing list");
   while(!dlink_empty(&ready))
   {
     d = dlink_remove(&ready);
     printf("Ready element: %p\n",d->data);
+  //  free(d);
   }
 }
