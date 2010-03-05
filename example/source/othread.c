@@ -87,18 +87,21 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
     /* If there is at least one thread waiting in the new queue, we
        switch to the first one. Otherwise we terminate the whole
        application */
-      dlink_t *d;
+      //Update the state of the current thread
       current->state = state;
+      //Save a copy of the current thhread
       struct tkb * old_current = current;
       
-      
+      //Get a new thread
       dlink_t *new_d;
       new_d = dlink_remove(new);
-    
+      //Set it to the new current thread
       current = new_d->data;
+      //Free the dlink element since it is not needed anymore
       free(new_d);
-        
+      //Update the waiting queue
       current->waiting = *old;
+      //Do the swapping
       swapcontext(&old_current->context,&current->context);
    
    /* TO IMPLEMENT: The actual switch between the current thread and
@@ -220,17 +223,14 @@ int othread_join (othread_t th, void **thread_return)
 /* Yield the processor to another thread or process. Returns 0 always. */
 int othread_yield (void)
 {
-  /* TO IMPLEMENT: If there are other threads ready to run on the
-     ready queue, switch between the current thread and the first one
-     in the ready queue. The current thread should be placed in the
-     ready queue. */
   if(!dlink_empty(&ready))
   {
+    //Put the current thread back in the ready queue
     dlink_insert(&ready,dlink_alloc(current));
     
+    //Switch to another thread
     switch_thread(&current->waiting,&ready,READY);
   }
-  
   return 0;
 }
 
@@ -243,6 +243,7 @@ int othread_yield (void)
     EDEADLK  the  mutex  is  already  locked  by  the
              calling  thread (``error checking'' mutexes
              only).                                          */
+
 int othread_mutex_lock (othread_mutex_t *mutex)
 {
   if(mutex == NULL)
@@ -250,24 +251,25 @@ int othread_mutex_lock (othread_mutex_t *mutex)
 
   if(mutex->locked)
   {
-    current->state = WAITING;
-    dlink_insert(mutex->waiting,dlink_alloc(current));
-
-    //othread_yield();
-
     //The mutex is locked
+    if(&mutex->waiting == NULL)
+      dlink_init_head(&mutex->waiting);
+
+    //Make the thread waiting
+    current->state = WAITING;
+    
     //Put it on the waiting queue
+    dlink_insert(&mutex->waiting,dlink_alloc(current));
+    
     //Get new active thread from ready queue
+    switch_thread(&current->waiting,&ready,WAITING);
+
   } else {
     //The mutex is not locked
     //Lock the mutex
     mutex->locked = 1;
   }
   
-  /* TO IMPLEMENT: Check whether the mutex is locked. If not lock it,
-     and otherwise put the thread on the mutex wait queue and get a
-     new active thread from the ready queue.*/
-
   return 0;
 }
 
@@ -281,18 +283,19 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 {
   if(mutex == NULL)
     return EINVAL;
-
-  if(dlink_empty(mutex->waiting))
+ 
+  if(dlink_empty(&mutex->waiting))
   {
     mutex->locked = 0; //Unlock the mutex
   } else {
-    dlink_t * elem;
-    elem = dlink_remove(mutex->waiting);
-    dlink_insert(&ready,elem);
+    dlink_t * d;
+    d = dlink_remove(&mutex->waiting);
+    //Make the thread ready
+    struct tkb * elem = d->data;
+    elem->state = READY;
+    //Put it on the ready queue
+    dlink_insert(&ready,d);
   }
-  /* TO IMPLEMENT: If there are no waiting threads the mutex should be
-     unlocked. Otherwise, one of the waiting threads should be moved
-     to thre ready queue. */
   
   return 0;
 }

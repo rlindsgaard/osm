@@ -20,14 +20,14 @@ typedef unsigned long int othread_t;
 typedef struct {
 
   int locked; //0 if unlocked, 1 if locked
-  dlink_head_t *waiting;
+  dlink_head_t waiting;
 } othread_mutex_t;
 
 
 /* Initializers.  */
 
 #define OTHREAD_NORMAL_MUTEX_INITIALIZER \
-  { /* TO IMPLEMENT */ }
+  {0, { NULL,NULL }  }
 
 /* Function for handling threads.  */
 
