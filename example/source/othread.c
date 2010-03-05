@@ -84,7 +84,6 @@ void thread_wrapper(struct tkb *my_tkb)
 void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
 {
   if(!dlink_empty(new)) {
-    printf("Ping %d\n",current);
     /* If there is at least one thread waiting in the new queue, we
        switch to the first one. Otherwise we terminate the whole
        application */
@@ -92,17 +91,14 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
       current->state = state;
       struct tkb * old_current = current;
       
-      d = dlink_alloc(old_current);
-      dlink_insert(old,d);
       
       dlink_t *new_d;
       new_d = dlink_remove(new);
     
       current = new_d->data;
-//      free(new_d);
-        current->waiting = *old;
-    //    printf("swapcontext");
-      printf("old_current: %p current: %p\n",old_current,current);
+      free(new_d);
+        
+      current->waiting = *old;
       swapcontext(&old_current->context,&current->context);
    
    /* TO IMPLEMENT: The actual switch between the current thread and
@@ -174,10 +170,7 @@ void othread_exit (void *retval)
   current->retval = retval;
 
   if(!dlink_empty(&current->waiting)) {
-    dlink_t * d;
-    d= dlink_remove(&current->waiting);
-    printf("Adding new element when exiting %p\n",d->data);
-    dlink_insert(&ready,d );
+    dlink_insert(&ready,dlink_remove(&current->waiting));
   }
   /* Let othread_join handle the actual deallocation after we've
      switched to a new context - right now we are still using the
@@ -233,10 +226,8 @@ int othread_yield (void)
      ready queue. */
   if(!dlink_empty(&ready))
   {
-    printf("Adding a new element %p\n",current);
     dlink_insert(&ready,dlink_alloc(current));
     
- //   print_ready(&ready);
     switch_thread(&current->waiting,&ready,READY);
   }
   
@@ -306,15 +297,3 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
   return 0;
 }
 
-void print_ready(dlink_head_t ready)
-{
-  dlink_t *d;
-
-  printf("Printing list");
-  while(!dlink_empty(&ready))
-  {
-    d = dlink_remove(&ready);
-    printf("Ready element: %p\n",d->data);
-  //  free(d);
-  }
-}
