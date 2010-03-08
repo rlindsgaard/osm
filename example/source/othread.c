@@ -89,21 +89,21 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
        application */
       //Update the state of the current thread
       current->state = state;
-      //Save a copy of the current thhread
-      struct tkb * old_current = current;
+      //Save a copy of the current thhread     
+         
+      dlink_t * d;
+      d  = dlink_remove(new); //Current element wrapper
+
+      struct tkb * elem = d->data;
+
+      d->data = current;
+      dlink_insert(old,d);
       
-      //Get a new thread
-      dlink_t *new_d;
-      new_d = dlink_remove(new);
-      //Set it to the new current thread
-      current = new_d->data;
-      //Free the dlink element since it is not needed anymore
-      free(new_d);
-      //Update the waiting queue
-      current->waiting = *old;
-      //Do the swapping
-      swapcontext(&old_current->context,&current->context);
-   
+      struct tkb * old_current = current;
+      current = elem;
+
+      swapcontext(&old_current->context,&elem->context);
+      
    /* TO IMPLEMENT: The actual switch between the current thread and
        the first thread at the head of the "new" list. Here you should
        use swapcontext as explained in the note on user level thread
@@ -225,11 +225,8 @@ int othread_yield (void)
 {
   if(!dlink_empty(&ready))
   {
-    //Put the current thread back in the ready queue
-    dlink_insert(&ready,dlink_alloc(current));
-    
     //Switch to another thread
-    switch_thread(&current->waiting,&ready,READY);
+    switch_thread(&ready,&ready,READY);
   }
   return 0;
 }
@@ -251,18 +248,13 @@ int othread_mutex_lock (othread_mutex_t *mutex)
 
   if(mutex->locked)
   {
-    //The mutex is locked
-    if(&mutex->waiting == NULL)
-      dlink_init_head(&mutex->waiting);
-
     //Make the thread waiting
     current->state = WAITING;
     
     //Put it on the waiting queue
-    dlink_insert(&mutex->waiting,dlink_alloc(current));
     
     //Get new active thread from ready queue
-    switch_thread(&current->waiting,&ready,WAITING);
+    switch_thread(&mutex->waiting,&ready,WAITING);
 
   } else {
     //The mutex is not locked
