@@ -74,4 +74,9 @@ int othread_mutex_lock (othread_mutex_t *mutex);
           (``error checking'' mutexes only).            */
 int othread_mutex_unlock (othread_mutex_t *mutex);
 
+
+void *othread_malloc(size_t size, int memid);
+
+int othread_free(void *);
+
 #endif	/* othread.h */

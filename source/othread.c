@@ -292,3 +292,10 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
   return 0;
 }
 
+void *othread_malloc(size_t size, int memid)
+{
+}
+
+int othread_free(void *)
+{
+}
