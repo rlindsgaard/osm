@@ -1,8 +1,8 @@
-BASENAME=g3-report
+BASENAME=g4-rapport
 
 default: compile view
 compile:
-	pdflatex $(BASENAME).tex && pdflatex $(BASENAME)
+	pdflatex $(BASENAME).tex && pdflatex $(BASENAME).tex
 
 view: compile
 	evince $(BASENAME).pdf
