@@ -1,20 +1,16 @@
-CC			=gcc
-CFLAGS 		=-Wall -pedantic -std=c99 -ggdb
-LDFLAGS		= -lpthread
-PWD 		=$(shell basename `pwd`)
-SRC_FILES	=$(shell find . -name "*.c")
-SUB_TARGETS	=$(shell find . -name "*.[ch]")
+TARGETS = create yield param mutex
+LIBOBJ = othread.o dlink.o
+CC = gcc -Wall
 
-default: $(PWD)
+.PHONY: clean all works
 
-$(PWD): $(SUB_TARGETS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(SRC_FILES)
+all: $(TARGETS)
 
-run: $(PWD)
-	./$(PWD)
-	
-totalitarian: 
-	splint -strict $(SRC_FILES) 
-
+othread.o : othread.c othread.h errstop.h
+	$(CC) -c othread.c
+dlink.o : dlink.c dlink.h 
+	$(CC) -c dlink.c
+%: 	%.c $(LIBOBJ) othread.h dlink.h
+	$(CC) -o $@ $< $(LIBOBJ)
 clean:
-	rm -r $(PWD) $(PWD).dSYM
+	rm $(TARGETS) $(LIBOBJ)
