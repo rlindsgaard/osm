@@ -5,7 +5,7 @@
 \usepackage{ulem}
 \usepackage{palatino}
 \linespread{1.05}
-\title{Operativsystemer og Multiprogrammering\\G-opgave 3}
+\title{Operativsystemer og Multiprogrammering\\G-opgave 4}
 \author{Ronni Elken Lindsgaard - 0911831791 \and
 Hans-Kristian Bjerregaard - 0612862087 \and
 Alexander Winther Uldall - 2908872013}
@@ -13,4 +13,56 @@ Alexander Winther Uldall - 2908872013}
 \begin{document}
 \maketitle
 \newpage
+
+\section{}
+
+\section{}
+  Generisk algoritme:
+  \begin{itemize}
+    % segmentering
+    \item Brug $g$ i selector til at bestemme om GDT eller LDT skal benyttes.
+    \item Benyt $s$ til at slå base og limit op i GDT/LDT.
+    \item Tjek at offset er mindre end limit, en fejl opstår hvis dette ikke er tilfældet.
+    \item Beregn 32-bit lineær adresse ved at summere offset og base.
+    % sideopslag for 4KB
+    \item Benyt de første 10 bit ($p_1$) i den lineære adresse til at så op i sidekataloget for at finde den anvendte sidetabel.
+    \item Benyt de efterfølgende 10 bit ($p_p$) til at slå op i den fundne sidetabel.
+    \item Den fysiske adresse findes så ved at tage summen af resultatet i sidetabelen og den lineære adresses offset ($d$).
+  \end{itemize}
+  
+  \subsection{}
+    selector: 0x270, offset 0x10
+    \\\\
+    Selectoren i binær er 1001111000 hvilket giver $p = 00$, $g = 0$ og $s = 1001111$.
+    Da $g$ er nul benyttes GDT.
+    Decimalværdien af $s$ er 78 og på position 78 i GDT finder vi basen 0x803000 og limit 0x100.
+    Da limit er større end offsetet i den logiske adresse kan vi fortsætte.
+    Så beregnes den lineære adresse som summen af det logiske offset og basen hvilket giver 0x803010.
+    \\\\
+    Den binære værdi af den lineære adresse er 100000000011000000010000 hvilket giver $d = 000000010000$, $p_2 = 0000000011$ og $p_1 = 10$.
+    Decimalværdien af $p_1$ er 2 hvilket benyttes til at slå op i sidekataloget.
+    Decimalværdien af $p_2$ er 3 hvilet bruges til at slå op i den sidetabel fundet i sidekataloget.
+    Den fysiske adresse er så sidens adresse plus $d$ hvilket giver: 0x07 + 000000010000 = 10111.
+    
+  \subsection{}
+    selector: 0x278, offset 0xFA
+    \\\\
+    Selectoren i binær er 1001111000 hvilket giver $p = 00$, $g = 0$ og $s = 1001111$.
+    Da $g$ er nul benyttes GDT.
+    Decimalværdien af $s$ er 79 og på position 79 i GDT finder vi basen 0xC01000 og limit 0x80.
+    Da limit er mindre end offsetet i den logiske adresse kan vi ikke fortsætte!
+    
+  \subsection{}
+    selector: 0x10C, offset 0xFFF
+    \\\\
+    Selectoren i binær er 100001100 hvilket giver $p = 00$, $g = 1$ og $s = 100001$.
+    Da $g$ er et benyttes LDT.
+    Decimalværdien af $s$ er 33 og på position 33 i LDT finder vi basen 0xC00000 og limit 0x1000.
+    Da limit er større end offsetet i den logiske adresse kan vi fortsætte.
+    Så beregnes den lineære adresse som summen af det logiske offset og basen hvilket giver 0xC00FFF.
+    \\\\
+    Den binære værdi af den lineære adresse er 110000000000111111111111 hvilket giver $d = 111111111111$, $p_2 = 0000000000$ og $p_1 = 11$.
+    Decimalværdien af $p_1$ er 3 hvilket benyttes til at slå op i sidekataloget.
+    Decimalværdien af $p_2$ er 0 hvilet bruges til at slå op i den sidetabel fundet i sidekataloget.
+    Den fysiske adresse er så sidens adresse plus $d$ hvilket giver: 0x43 + 000000010000 = 1010011.
 \end{document}
