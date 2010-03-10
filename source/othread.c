@@ -48,6 +48,7 @@ static struct tkb first_thread;
 
 struct tkb *current = &first_thread; /* The current active thread */
 dlink_head_t ready = {NULL, NULL}; /* The ready queue */
+dlink_head_t share = {NULL,NULL};
 dlink_head_t termineret = {NULL, NULL}; /* This isn't really necessary
 					   currently, but it is nice
 					   to have for debugging and
@@ -294,8 +295,33 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 
 void *othread_malloc(size_t size, int memid)
 {
+  
+  dlink_t * d;
+  d = share->first
+  info_t * elem;  
+
+  do
+  {
+    elem = d->data;
+    if(elem->memid == memid)
+    {
+      elem->referants++;
+      return elem->data;
+    }
+  } while(d->next != NULL)
+  
+
+  
+  elem = calloc(1,sizeof(info_t));
+  elem->memid = memid;
+  elem->referants = 1;
+  elem->data = calloc(1,size);
+
+  dlink_insert(share,dlink_alloc(elem));
+  return 
 }
 
-int othread_free(void *)
+int othread_free(void * data)
 {
+  
 }

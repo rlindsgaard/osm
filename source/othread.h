@@ -23,6 +23,13 @@ typedef struct {
   dlink_head_t waiting; 
 } othread_mutex_t;
 
+typedef struct info info_t;
+
+struct info {
+  int memid;
+  int referants;
+  void * data;
+};
 
 /* Initializers.  */
 
@@ -77,6 +84,6 @@ int othread_mutex_unlock (othread_mutex_t *mutex);
 
 void *othread_malloc(size_t size, int memid);
 
-int othread_free(void *);
+int othread_free(void * elem);
 
 #endif	/* othread.h */
