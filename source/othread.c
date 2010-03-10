@@ -48,7 +48,7 @@ static struct tkb first_thread;
 
 struct tkb *current = &first_thread; /* The current active thread */
 dlink_head_t ready = {NULL, NULL}; /* The ready queue */
-dlink_head_t share = {NULL,NULL};
+dlink_head_t share = {NULL,NULL}; /* A list for keeping track of shared memory */
 dlink_head_t termineret = {NULL, NULL}; /* This isn't really necessary
 					   currently, but it is nice
 					   to have for debugging and
@@ -296,32 +296,39 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 void *othread_malloc(size_t size, int memid)
 {
   
-  dlink_t * d;
-  d = share->first
-  info_t * elem;  
+  dlink_t * d; 
+  d = share.first;
+  info_t * info;  
 
   do
   {
-    elem = d->data;
-    if(elem->memid == memid)
+    info = d->data - sizeof(info_t); 
+    if(info->memid == memid)
     {
-      elem->referants++;
-      return elem->data;
+      info->referants++;
+      return d->data + sizeof(info_t);
     }
-  } while(d->next != NULL)
+  } while(d->next != NULL);
   
+  info = calloc(1,sizeof(info_t)+size); //allocate the info structure with the data segment attached to it
+  info->memid = memid;
+  info->referants = 1;
+  d = dlink_alloc(info);
+  info->dlink = d; //Save the address for the dlink, easier when freeing.
+  dlink_insert(&share,d); 
 
-  
-  elem = calloc(1,sizeof(info_t));
-  elem->memid = memid;
-  elem->referants = 1;
-  elem->data = calloc(1,size);
-
-  dlink_insert(share,dlink_alloc(elem));
-  return 
+  return info+sizeof(info_t);
 }
 
 int othread_free(void * data)
 {
-  
+  info_t * info = data - sizeof(info_t);
+  info->referants--;
+  if(info->referants <= 0) // < 0 could happen...
+  {
+    dlink_free(info->dlink); //Free the dlink entry
+    free(info); //Free the pointer to the info structure
+    free(data); //Free the actual data
+  }
+  return 1;
 }
