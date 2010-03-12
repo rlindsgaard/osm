@@ -27,8 +27,7 @@ typedef struct info info_t;
 
 struct info {
   int memid;
-  int referants;
-  dlink_t * dlink;
+  dlink_head_t referants;
 };
 
 /* Initializers.  */

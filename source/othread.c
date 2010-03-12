@@ -35,6 +35,7 @@ struct tkb {
   ucontext_t   context;
   state_t      state;
   dlink_head_t waiting;
+  dlink_head_t share;
   int          stak[STACK_SIZE];
 };
 
@@ -48,7 +49,7 @@ static struct tkb first_thread;
 
 struct tkb *current = &first_thread; /* The current active thread */
 dlink_head_t ready = {NULL, NULL}; /* The ready queue */
-dlink_head_t share = {NULL,NULL}; /* A list for keeping track of shared memory */
+dlink_head_t share = {NULL,NULL}; /* A global list of all the shared memory */
 dlink_head_t termineret = {NULL, NULL}; /* This isn't really necessary
 					   currently, but it is nice
 					   to have for debugging and
@@ -171,10 +172,16 @@ int othread_create (othread_t *threadp,
 /* Terminate calling thread. Never returns :-) */
 void othread_exit (void *retval)
 {
+  printf("Exiting thread\n");
   current->retval = retval;
-
   if(!dlink_empty(&current->waiting)) {
     dlink_insert(&ready,dlink_remove(&current->waiting));
+  }
+  while(!dlink_empty(&current->share))
+  {
+    dlink_t *d = dlink_remove(&current->share);
+    othread_free(d->data);
+    dlink_free(d);
   }
   /* Let othread_join handle the actual deallocation after we've
      switched to a new context - right now we are still using the
@@ -195,7 +202,6 @@ int othread_join (othread_t th, void **thread_return)
 {
   struct tkb *wait_for = (struct tkb *) th;
   dlink_t *elem;
-
   if(wait_for == current)
     return EDEADLK;
   if(wait_for == NULL)
@@ -209,7 +215,7 @@ int othread_join (othread_t th, void **thread_return)
   /* We resume here when the thread has terminated */
   if(thread_return != NULL)
     *thread_return = wait_for->retval;
-  elem = dlink_delete(&termineret, wait_for);
+    elem = dlink_delete(&termineret, wait_for);
   /* We shouldn't free the statically allocated first_thread tkb */
   if(wait_for != &first_thread)
     free(wait_for);
@@ -217,7 +223,7 @@ int othread_join (othread_t th, void **thread_return)
     elem->data = NULL;
     dlink_free(elem);
   }
-    
+
   return 0;
 }
 
@@ -295,40 +301,50 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 
 void *othread_malloc(size_t size, int memid)
 {
-  
   dlink_t * d; 
-  d = share.first;
   info_t * info;  
-
-  do
+  void * data;
+  if(!dlink_empty(&share))
   {
-    info = d->data - sizeof(info_t); 
-    if(info->memid == memid)
+    d = share.first;
+    while(d != NULL)
     {
-      info->referants++;
-      return d->data + sizeof(info_t);
+      info = (d->data)-sizeof(info_t); 
+    data = info+1;
+      
+      if(info->memid == memid)
+      { 
+        dlink_insert(&info->referants,dlink_alloc(current));
+        dlink_insert(&current->share,dlink_alloc(data));
+        return  data;
+      }
+      d = d->next;
     }
-  } while(d->next != NULL);
-  
+  }
   info = calloc(1,sizeof(info_t)+size); //allocate the info structure with the data segment attached to it
   info->memid = memid;
-  info->referants = 1;
-  d = dlink_alloc(info);
-  info->dlink = d; //Save the address for the dlink, easier when freeing.
-  dlink_insert(&share,d); 
-
-  return info+sizeof(info_t);
+  dlink_init_head(&info->referants);
+  dlink_insert(&info->referants,dlink_alloc(current));
+  data = info+1;
+  
+  dlink_insert(&share,dlink_alloc(data)); 
+  dlink_insert(&current->share,dlink_alloc(data));
+  return data;
 }
 
 int othread_free(void * data)
 {
-  info_t * info = data - sizeof(info_t);
-  info->referants--;
-  if(info->referants <= 0) // < 0 could happen...
+  dlink_t * d;
+  info_t * info;
+  info_t * d_info;
+
+  info = data-sizeof(info_t);
+  dlink_free(dlink_delete(&current->share,data));
+  dlink_free(dlink_delete(&info->referants,current));
+  
+  if(dlink_empty(&info->referants))
   {
-    dlink_free(info->dlink); //Free the dlink entry
-    free(info); //Free the pointer to the info structure
-    free(data); //Free the actual data
+    dlink_free(dlink_delete(&share,data));
+    free(info);
   }
-  return 1;
 }

@@ -1,4 +1,4 @@
-TARGETS = create yield param mutex
+TARGETS = create yield param mutex malloc
 LIBOBJ = othread.o dlink.o
 CC = gcc -Wall
 
