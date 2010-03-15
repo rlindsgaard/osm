@@ -25,7 +25,6 @@ void *printer(void *arg)
   // A private counter only for this thread
   int * p = othread_malloc(sizeof(int),0);
   //(*c) = 0; Assume this is already set because it is initialized to NULL
-  (*p) = 0;
 
   for(i = 0; i<thread_arg->repetitions; i++) {
     (*c)++;
@@ -34,13 +33,37 @@ void *printer(void *arg)
 	   thread_arg->thread_name,
 	   thread_arg->string,
      *c,*p);
-    
     othread_yield();
   }
-  
+  int *d = othread_malloc(sizeof(int),2);
+  printf("Value of the other thread's global counter: %d\n",*d);
   return NULL;
 }
 
+void* printer2(void *arg)
+{
+  int i;
+  my_thread_arg *thread_arg = (my_thread_arg *) arg;
+
+  int *c = othread_malloc(sizeof(int),1);
+  int *d = othread_malloc(sizeof(int),2); //A second shared variable working as private
+  int *p = othread_malloc(sizeof(int),0);
+
+  for(i = 0;i<thread_arg->repetitions;i++)
+  {
+    (*c)++;
+    (*p)++;
+    (*d)++;
+    printf("%s says: %s\nPublic counter is: %d\nPrivate counter is: %d\n",
+	   thread_arg->thread_name,
+	   thread_arg->string,
+     *c,*p);
+    printf("This thread also has a global counter: %d\n",*d);
+    othread_yield();
+  }
+  printf("Exiting printer2, memid=2 will no longer be readable\n");
+  return NULL;
+}
 
 int main(void)
 {
@@ -55,7 +78,7 @@ int main(void)
   a2.thread_name = "T2";
   a2.string = "Hasta la vista, baby!";
   a2.repetitions = 20;
-  othread_create(&t2, printer, (void *) &a2);
+  othread_create(&t2, printer2, (void *) &a2);
   a3.thread_name = "T3";
   a3.string = "I'm back";
   a3.repetitions = 20;
