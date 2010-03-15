@@ -59,9 +59,8 @@ Delte allokeringer skal være tilgængelige for forskellige typer af tråde imel
 gældende for allokeringer hvor ${\tt memid} \neq 0$.
 
 Til sidst skal der tjekkes om hukommelsen rent faktisk bliver frigjort når trådene exiter. Dette er
-gjort vha. programmet valgrind. Outputtet herfra fortæller at der er 72 tabte bytes, dette tab
-forefindes også uden brug af de implementerede biblioteksfunktioner. Tabet af data findes derfor
-andetsteds i biblioteket og vores {\tt othread\_free} må derfor virke efter forskriften.
+gjort vha. programmet valgrind og resultatet er at der ikke forefindes allokeret hukommelse efter
+programmets afslutning.
 Testprogrammet hedder {\tt malloc.c}.
 
 \section{Segmenterede sidetabeller}
