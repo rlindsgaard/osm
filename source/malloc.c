@@ -20,20 +20,27 @@ void *printer(void *arg)
 {
   my_thread_arg *thread_arg = (my_thread_arg *) arg;
   int   i;
+  // A shared counter
   int * c = othread_malloc(sizeof(int),1);
-  c = 0;
+  // A private counter only for this thread
+  int * p = othread_malloc(sizeof(int),0);
+  //(*c) = 0; Assume this is already set because it is initialized to NULL
+  (*p) = 0;
+
   for(i = 0; i<thread_arg->repetitions; i++) {
-    *c++;
-    printf("%s: %s %d\n",
+    (*c)++;
+    (*p)++;
+    printf("%s says: %s\nPublic counter is: %d\nPrivate counter is: %d\n",
 	   thread_arg->thread_name,
 	   thread_arg->string,
-     c);
+     *c,*p);
     
     othread_yield();
   }
   
   return NULL;
 }
+
 
 int main(void)
 {

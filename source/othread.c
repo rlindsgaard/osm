@@ -172,7 +172,6 @@ int othread_create (othread_t *threadp,
 /* Terminate calling thread. Never returns :-) */
 void othread_exit (void *retval)
 {
-  printf("Exiting thread\n");
   current->retval = retval;
   if(!dlink_empty(&current->waiting)) {
     dlink_insert(&ready,dlink_remove(&current->waiting));
@@ -331,6 +330,7 @@ void *othread_malloc(size_t size, int memid)
     dlink_insert(&share,dlink_alloc(data)); 
   dlink_insert(&current->share,dlink_alloc(data));
   /* Kritisk region slut */
+  memset(data,NULL,size);
   return data;
 }
 
