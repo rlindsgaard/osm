@@ -70,7 +70,9 @@ forefindes også uden brug af de implementerede biblioteksfunktioner. Tabet af d
 andetsteds i biblioteket og vores {\tt othread\_free} må derfor virke.
 
 \section{Segmenterede sidetabeller}
-  Generisk algoritme:
+  Her følger den generiske algoritme for at konvertere en logisk adresse til en fysisk adresse på en Intel Pentium processor.
+  De første 4 punkter dækker segmenteringen mens de sidste 3 dækker over sideopslag.
+  Navne i algoritmen refererer figurerne på side 346 (figurerne er unummererede) i SGG - 8. udgave.
   \begin{itemize}
     % segmentering
     \item Brug $g$ i selector til at bestemme om GDT eller LDT skal benyttes.
