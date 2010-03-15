@@ -23,6 +23,7 @@ typedef struct {
   dlink_head_t waiting; 
 } othread_mutex_t;
 
+/* info_t used by othread_malloc to create shared memory */
 typedef struct info info_t;
 
 struct info {

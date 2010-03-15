@@ -35,7 +35,7 @@ struct tkb {
   ucontext_t   context;
   state_t      state;
   dlink_head_t waiting;
-  dlink_head_t share;
+  dlink_head_t share; //Local list of allocated memory
   int          stak[STACK_SIZE];
 };
 
@@ -176,7 +176,8 @@ void othread_exit (void *retval)
   if(!dlink_empty(&current->waiting)) {
     dlink_insert(&ready,dlink_remove(&current->waiting));
   }
-  while(!dlink_empty(&current->share))
+
+  while(!dlink_empty(&current->share)) //othread_free all memory pointed to by thread 
   {
     dlink_t *d = dlink_remove(&current->share);
     othread_free(d->data);
@@ -306,6 +307,7 @@ void *othread_malloc(size_t size, int memid)
   /* Kritisk region start */
   if(!dlink_empty(&share) && memid != 0)
   {
+    //Loop through the global list
     d = share.first;
     while(d != NULL)
     {
@@ -314,6 +316,7 @@ void *othread_malloc(size_t size, int memid)
       
       if(info->memid == memid)
       { 
+        //Allocated memory found, update lists and return pointer to this area
         dlink_insert(&info->referants,dlink_alloc(current));
         dlink_insert(&current->share,dlink_alloc(data));
         return  data;
@@ -323,14 +326,14 @@ void *othread_malloc(size_t size, int memid)
   }
   info = calloc(1,sizeof(info_t)+size); //allocate the info structure with the data segment attached to it
   info->memid = memid;
-  dlink_init_head(&info->referants);
-  dlink_insert(&info->referants,dlink_alloc(current));
-  data = info+1;
-  if(memid != 0)
+  dlink_init_head(&info->referants); 
+  dlink_insert(&info->referants,dlink_alloc(current)); //Put it in the referants list
+  data = info+1; //Get the address for the data
+  if(memid != 0) //Insert into global allocated memory unless it's private
     dlink_insert(&share,dlink_alloc(data)); 
-  dlink_insert(&current->share,dlink_alloc(data));
+  dlink_insert(&current->share,dlink_alloc(data)); //Insert into thread list
   /* Kritisk region slut */
-  memset(data,NULL,size);
+  memset(data,NULL,size); //Set to NULL to ensure initialised value
   return data;
 }
 
@@ -339,14 +342,15 @@ int othread_free(void * data)
   info_t * info;
   /* Kritisk region start */
   info = data-sizeof(info_t);
+  //Free the list element in the thread and in the allocated memory
   dlink_free(dlink_delete(&current->share,data));
   dlink_free(dlink_delete(&info->referants,current));
   
-  if(dlink_empty(&info->referants))
+  if(dlink_empty(&info->referants)) //No more referants to this piece of memory
   {
-    if(info->memid != 0)
+    if(info->memid != 0) //Only if it's actually added to the global list
       dlink_free(dlink_delete(&share,data));
-    free(info);
+    free(info); //What does americans claim to be?
   }
   /* Kritisk region slut */
   return 0;
