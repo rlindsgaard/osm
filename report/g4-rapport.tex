@@ -47,9 +47,6 @@ othread\_malloc} og {\tt othread\_free} udføres atomart. De kritiske regioner b
 {\tt othread\_malloc} og {\tt othread\_free}.
 
 \subsection{Kontrol af rigtighed}
-Det er ikke helt ligetil at kontrollere rigtigheden eftersom det er en række parallelle tråde. Vi har
-valgt at vise rigtigheden ud fra whitebox testing. Dele af koden kan argumenteres for virker og rent
-faktisk at skulle kode det er for komplekst og ligegyldigt Vi tester derfor for:
 Allokeringer med samme memid skal pege samme sted hen både i samme tråd og mellem tråde. Dette er
 gjort ved at dele en tæller-variabel mellem trådene
 Allokeringer med memid=0 skal være privat allokerede kun for den specifikke tråd. Dette er gjort ved
@@ -65,6 +62,7 @@ Til sidst skal der tjekkes om hukommelsen rent faktisk bliver frigjort når trå
 gjort vha. programmet valgrind. Outputtet herfra fortæller at der er 72 tabte bytes, dette tab
 forefindes også uden brug af de implementerede biblioteksfunktioner. Tabet af data findes derfor
 andetsteds i biblioteket og vores {\tt othread\_free} må derfor virke efter forskriften.
+Testprogrammet hedder {\tt malloc.c}.
 
 \section{Segmenterede sidetabeller}
   Her følger den generiske algoritme for at konvertere en logisk adresse til en fysisk adresse på en Intel Pentium processor.
