@@ -14,9 +14,62 @@ Alexander Winther Uldall - 2908872013}
 \maketitle
 \newpage
 
-\section{}
+\section{othread lageradministration}
+\subsection{Strategi}
+Vi har valgt at holde 3 typer af lister for let at kunne hive de informationer ud som skal bruges.
+En global liste holder styr på alle tråde der pt er allokerede som deles mellem processer. En liste
+for hver tråd som holder styr på de af {\tt othread\_malloc} allokerede områder som tråden har
+  adgang til. Den sidste liste ligger i en datastruktur før selve det allokerede område med
+  metadata. Denne liste indholder en liste over samtlige tråde der henviser til dette område.
 
-\section{}
+\subsection{\tt othread\_malloc}
+Først tjekkes om det område defineret i {\tt memid} ved at løbe igennem den globale liste over
+allokerede områder. Findes det allerede returneres pointeren til det i forvejen allokerede sted i
+hukommelsen.
+Hvis det ikke findes, allokeres et nyt område. De tre lister nævnt ovenfor opdateres med undtagelsen
+hvis {\tt memid} er 0 da den globale liste ikke opdateres for at sikre private område. Til sidst
+initialiseres den allokerede hukommelse til {\tt NULL} da vi derfor kan være sikre på data's værdi.
+
+\subsection{\tt othread\_free}
+Listeelementerne i tråden og datastrukturens liste bliver fjernet med det samme da disse ikke
+længere er skal bruges. Herefter tjekkes om der stadig er tråde der peger på den delte hukommelse,
+hvis ikke bliver området fjernet fra den globale liste og hele området deallokeres.
+
+{\tt othread\_exit} er blevet ændret således at for alle adresserum der peges på i listen af
+allokerede adresserum bliver der kaldt {\tt othread\_free} - så længe at {\tt othread\_exit} kaldes
+ved afslutningen af hver tråd vil altså alle allokerede områder også blive deallokerede.
+
+\subsection{Kritiske regioner}
+Ved tvungen trådskift kan vi risikere at skifte midt i udførslen af koden. Der er flere lister der
+skal opdateres, hvis et trådskift forekommer midt i opdateringen af disse lister vil eventuelle
+tråde der bliver eksekverede arbejde på forkert hukommelse. Det er derfor nødvendigt at både {\tt
+othread\_malloc} og {\tt othread\_free} udføres atomart. De kritiske regioner består derfor af hele
+{\tt othread\_malloc} og {\tt othread\_free}.
+
+\subsection{Kontrol af rigtighed}
+Det er ikke helt ligetil at kontrollere rigtigheden eftersom det er en række parallelle tråde. Vi har
+valgt at vise rigtigheden ud fra whitebox testing. Dele af koden kan argumenteres for virker og rent
+faktisk at skulle kode det er for komplekst og ligegyldigt Vi tester derfor for:
+Allokeringer med samme memid skal pege samme sted hen både i samme tråd og mellem tråde. Dette er
+gjort ved at dele en tæller-variabel mellem trådene
+Allokeringer med memid=0 skal være privat allokerede kun for den specifikke tråd. Dette er gjort ved
+arbejde med variablen på samme måde og se at ændringer kun gælder for den enkelte tråd.
+For {\tt othread\_free} skal det være muligt at tilgå hukommelsesområdet så længe der er mindst een
+tråd der peger på det allokerede område. Dette skal derfor aldrig være tilfældet for {\tt memid} =
+0. 
+
+Delte allokeringer skal være tilgængelige for forskellige typer af tråde imellem, dette er kun
+gældende for allokeringer hvor ${\tt memid} \neq 0$. Hvilken funktion eller tråd der bliver afviklet
+er for biblioteket ligegyldigt, da det kun er en pointer til funktionen som biblioteket bruger. De
+globale variable for biblioteket samt de lokale variable for den enkelte tråd må derfor være
+ensartede.
+
+Til sidst skal der tjekkes om hukommelsen rent faktisk bliver frigjort når trådene exiter. Dette er
+gjort vha. programmet valgrind. Outputtet herfra fortæller at der er 72 tabte bytes, dette tab
+forefindes også uden brug af de implementerede biblioteksfunktioner. Tabet af data findes derfor
+andetsteds i biblioteket og vores {\tt othread\_free} må derfor virke.
+
+\section{Segmenterede sidetabeller}
   Generisk algoritme:
   \begin{itemize}
     % segmentering
