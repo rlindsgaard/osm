@@ -304,7 +304,8 @@ void *othread_malloc(size_t size, int memid)
   dlink_t * d; 
   info_t * info;  
   void * data;
-  if(!dlink_empty(&share))
+  /* Kritisk region start */
+  if(!dlink_empty(&share) && memid != 0)
   {
     d = share.first;
     while(d != NULL)
@@ -326,25 +327,27 @@ void *othread_malloc(size_t size, int memid)
   dlink_init_head(&info->referants);
   dlink_insert(&info->referants,dlink_alloc(current));
   data = info+1;
-  
-  dlink_insert(&share,dlink_alloc(data)); 
+  if(memid != 0)
+    dlink_insert(&share,dlink_alloc(data)); 
   dlink_insert(&current->share,dlink_alloc(data));
+  /* Kritisk region slut */
   return data;
 }
 
 int othread_free(void * data)
 {
-  dlink_t * d;
   info_t * info;
-  info_t * d_info;
-
+  /* Kritisk region start */
   info = data-sizeof(info_t);
   dlink_free(dlink_delete(&current->share,data));
   dlink_free(dlink_delete(&info->referants,current));
   
   if(dlink_empty(&info->referants))
   {
-    dlink_free(dlink_delete(&share,data));
+    if(info->memid != 0)
+      dlink_free(dlink_delete(&share,data));
     free(info);
   }
+  /* Kritisk region slut */
+  return 0;
 }
