@@ -101,7 +101,7 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
       
       struct tkb * old_current = current;
       current = elem;
-
+      current->state = RUNNING;
       swapcontext(&old_current->context,&elem->context);
       
    /* TO IMPLEMENT: The actual switch between the current thread and
@@ -245,23 +245,18 @@ int othread_mutex_lock (othread_mutex_t *mutex)
 {
   if(mutex == NULL)
     return EINVAL;
-
-  if(mutex->locked)
-  {
-    //Make the thread waiting
-    current->state = WAITING;
-    
-    //Put it on the waiting queue
-    
-    //Get new active thread from ready queue
-    switch_thread(&mutex->waiting,&ready,WAITING);
-
-  } else {
-    //The mutex is not locked
-    //Lock the mutex
-    mutex->locked = 1;
-  }
-  
+  if(mutex->owner == current)
+    return EDEADLK;
+    if(mutex->locked)
+    {
+      //Get new active thread from ready queue
+      switch_thread(&mutex->waiting,&ready,WAITING);
+    } else {
+      //The mutex is not locked
+      //Lock the mutex
+      mutex->owner = current;
+      mutex->locked = 1;
+    }
   return 0;
 }
 
@@ -275,15 +270,19 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 {
   if(mutex == NULL)
     return EINVAL;
- 
+  if(mutex->owner != current)
+    return EPERM;
+
   if(dlink_empty(&mutex->waiting))
   {
+    mutex->owner = NULL;
     mutex->locked = 0; //Unlock the mutex
   } else {
     dlink_t * d;
     d = dlink_remove(&mutex->waiting);
     //Make the thread ready
     struct tkb * elem = d->data;
+    mutex->owner = elem;
     elem->state = READY;
     //Put it on the ready queue
     dlink_insert(&ready,d);
