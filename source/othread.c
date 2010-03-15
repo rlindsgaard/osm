@@ -103,15 +103,8 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
       
       struct tkb * old_current = current;
       current = elem;
-
+      current->state = RUNNING;
       swapcontext(&old_current->context,&elem->context);
-      
-   /* TO IMPLEMENT: The actual switch between the current thread and
-       the first thread at the head of the "new" list. Here you should
-       use swapcontext as explained in the note on user level thread
-       switching. The current thread is place in the "old" queue, and
-       it's state has to be updated to the "state" parameter. */
-
   } else {
     printf("Terminating: empty new FIFO in switch_thread\n");
     exit(-1);
@@ -220,7 +213,8 @@ int othread_join (othread_t th, void **thread_return)
   if(wait_for != &first_thread)
     free(wait_for);
   if(elem != NULL) {
-    elem->data = NULL;
+// Uncommented in order to get dlink library to actually free the dlink element    
+//    elem->data = NULL;
     dlink_free(elem);
   }
 
@@ -252,23 +246,18 @@ int othread_mutex_lock (othread_mutex_t *mutex)
 {
   if(mutex == NULL)
     return EINVAL;
-
-  if(mutex->locked)
-  {
-    //Make the thread waiting
-    current->state = WAITING;
-    
-    //Put it on the waiting queue
-    
-    //Get new active thread from ready queue
-    switch_thread(&mutex->waiting,&ready,WAITING);
-
-  } else {
-    //The mutex is not locked
-    //Lock the mutex
-    mutex->locked = 1;
-  }
-  
+  if(mutex->owner == current)
+    return EDEADLK;
+    if(mutex->locked)
+    {
+      //Get new active thread from ready queue
+      switch_thread(&mutex->waiting,&ready,WAITING);
+    } else {
+      //The mutex is not locked
+      //Lock the mutex
+      mutex->owner = current;
+      mutex->locked = 1;
+    }
   return 0;
 }
 
@@ -282,15 +271,19 @@ int othread_mutex_unlock (othread_mutex_t *mutex)
 {
   if(mutex == NULL)
     return EINVAL;
- 
+  if(mutex->owner != current)
+    return EPERM;
+
   if(dlink_empty(&mutex->waiting))
   {
+    mutex->owner = NULL;
     mutex->locked = 0; //Unlock the mutex
   } else {
     dlink_t * d;
     d = dlink_remove(&mutex->waiting);
     //Make the thread ready
     struct tkb * elem = d->data;
+    mutex->owner = elem;
     elem->state = READY;
     //Put it on the ready queue
     dlink_insert(&ready,d);
