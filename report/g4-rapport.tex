@@ -59,15 +59,12 @@ tråd der peger på det allokerede område. Dette skal derfor aldrig være tilf�
 0. 
 
 Delte allokeringer skal være tilgængelige for forskellige typer af tråde imellem, dette er kun
-gældende for allokeringer hvor ${\tt memid} \neq 0$. Hvilken funktion eller tråd der bliver afviklet
-er for biblioteket ligegyldigt, da det kun er en pointer til funktionen som biblioteket bruger. De
-globale variable for biblioteket samt de lokale variable for den enkelte tråd må derfor være
-ensartede.
+gældende for allokeringer hvor ${\tt memid} \neq 0$.
 
 Til sidst skal der tjekkes om hukommelsen rent faktisk bliver frigjort når trådene exiter. Dette er
 gjort vha. programmet valgrind. Outputtet herfra fortæller at der er 72 tabte bytes, dette tab
 forefindes også uden brug af de implementerede biblioteksfunktioner. Tabet af data findes derfor
-andetsteds i biblioteket og vores {\tt othread\_free} må derfor virke.
+andetsteds i biblioteket og vores {\tt othread\_free} må derfor virke efter forskriften.
 
 \section{Segmenterede sidetabeller}
   Her følger den generiske algoritme for at konvertere en logisk adresse til en fysisk adresse på en Intel Pentium processor.
