@@ -28,7 +28,7 @@ typedef struct {
 /* Initializers.  */
 
 #define OTHREAD_NORMAL_MUTEX_INITIALIZER \
-  {0, DLINK_HEAD_INIT  }
+  {0, NULL, DLINK_HEAD_INIT  }
 
 /* Function for handling threads.  */
 

@@ -103,13 +103,6 @@ void switch_thread(dlink_head_t *old, dlink_head_t *new, int state)
       current = elem;
       current->state = RUNNING;
       swapcontext(&old_current->context,&elem->context);
-      
-   /* TO IMPLEMENT: The actual switch between the current thread and
-       the first thread at the head of the "new" list. Here you should
-       use swapcontext as explained in the note on user level thread
-       switching. The current thread is place in the "old" queue, and
-       it's state has to be updated to the "state" parameter. */
-
   } else {
     printf("Terminating: empty new FIFO in switch_thread\n");
     exit(-1);
@@ -213,7 +206,8 @@ int othread_join (othread_t th, void **thread_return)
   if(wait_for != &first_thread)
     free(wait_for);
   if(elem != NULL) {
-    elem->data = NULL;
+// Uncommented in order to get dlink library to actually free the dlink element    
+//    elem->data = NULL;
     dlink_free(elem);
   }
     
