@@ -1,4 +1,4 @@
-BASENAME=g4-rapport
+BASENAME=g5-rapport
 
 default: compile view
 compile:

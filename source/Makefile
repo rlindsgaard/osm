@@ -1,16 +1,10 @@
-TARGETS = create yield param mutex malloc
-LIBOBJ = othread.o dlink.o
-CC = gcc -Wall
+CC = gcc
+CCFLAGS = -Wall -O2 -g -I.
 
-.PHONY: clean all works
+all: ptable
 
-all: $(TARGETS)
+ptable: ptable.c 
+	$(CC) $(CCFLAGS) -o ptable ptable.c
 
-othread.o : othread.c othread.h errstop.h
-	$(CC) -c othread.c
-dlink.o : dlink.c dlink.h 
-	$(CC) -c dlink.c
-%: 	%.c $(LIBOBJ) othread.h dlink.h
-	$(CC) -o $@ $< $(LIBOBJ)
-clean:
-	rm $(TARGETS) $(LIBOBJ)
+clean :
+	rm -f *.o *~ ptable
