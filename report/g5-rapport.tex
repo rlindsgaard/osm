@@ -14,4 +14,134 @@ Alexander Winther Uldall - 2908872013}
 \maketitle
 \newpage
 
+\section{G5.2}
+lalala
+
+ \subsection{Sideerstatning}
+
+
+ \begin{tabular}{l | c | c | c | c}
+
+t+1\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 5 & 8 & 16 & 4\\
+Reference bit & 1 & 0 & 1 & 1\\\\  
+\end{tabular}
+
+her sker ingen ændring da vi kun slår en side op.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+2\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 5 & 6 & 16 & 4\\
+Reference bit & 0 & 1 & 0 & 0\\\\
+\end{tabular}
+
+side 6 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 2, efter kørsel er denne sideplads 2.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+3\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 5 & 6 & 16 & 4\\
+Reference bit & 0 & 1 & 1 & 0\\\\
+\end{tabular}
+
+vi sætter control bit på side 16 til 1 da vi læser den igen.\\
+
+
+\begin{tabular}{l | c | c | c | c}
+t+4\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 5 & 6 & 16 & 8\\
+Reference bit & 0 & 1 & 0 & 1\\\\
+\end{tabular}
+
+første page fault.\\
+side 8 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 2, efter kørsel er denne sideplads 0.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+5\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 5 & 6 & 16 & 8\\
+Reference bit & 1 & 1 & 0 & 1\\\\
+\end{tabular}
+
+vi sætter control bit på side 5 til 1 da vi læser den igen.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+6\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 5 & 6 & 9 & 8\\
+Reference bit & 0 & 0 & 1 & 1\\\\
+\end{tabular}
+
+side 9 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 0, efter kørsel er denne sideplads 3.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+7\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 10 & 6 & 9 & 8\\
+Reference bit & 1 & 0 & 1 & 0\\\\
+\end{tabular}
+
+side 10 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 3, efter kørsel er denne sideplads 1.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+8\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 10 & 6 & 9 & 8\\
+Reference bit & 1 & 1 & 1 & 0\\\\
+\end{tabular}
+
+vi sætter control bit på side 6 til 1 da vi læser den igen.\\
+
+
+\begin{tabular}{l | c | c | c | c}
+t+9\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 10 & 6 & 9 & 7\\
+Reference bit & 1 & 0 & 0 & 1\\\\
+\end{tabular}
+
+side 7 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 1, efter kørsel er denne sideplads 0.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+10\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 10 & 8 & 9 & 7\\
+Reference bit & 0 & 1 & 0 & 1\\\\
+\end{tabular}
+
+anden page fault da side 8 ikke eksistere på den gamle plads.\\
+side 8 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 0, efter kørsel er denne sideplads 2.\\
+
+\begin{tabular}{l | c | c | c | c}
+t+11\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 10 & 8 & 3 & 7\\
+Reference bit & 0 & 1 & 1 & 1\\\\
+\end{tabular}
+
+side 3 eksistere ikke og swappes derfor ind.\\
+det nuværende offer er sideplads 2, efter kørsel er denne sideplads 3.\\
+
+
+\begin{tabular}{l | c | c | c | c}
+t+12\\
+Sideplads    & 0 & 1 & 2 & 3\\
+Side         & 10 & 8 & 3 & 7\\
+Reference bit & 0 & 1 & 1 & 1\\\\
+\end{tabular}
+
+intet sker der læses blot\\
+
+
+
+
 \end{document}
