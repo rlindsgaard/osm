@@ -16,7 +16,6 @@ afgør hvor i sidetabellen 'page' skal placeres. Hvis
 'page==NULL' slettes siden fra sidetabellen.
 */
 void ptable_set(ptabel_t *pt, void *laddr, void *page) {
-  printf("pt: %p laddr: %p\n",pt,laddr);
     /*
     Eksempel på udtagelse af p1 fra den logiske adresse.
     'uintptr_t' er en heltalstype som har ligeså mange
@@ -36,7 +35,6 @@ void ptable_set(ptabel_t *pt, void *laddr, void *page) {
 
     if(page == NULL)
     {
-      printf("Freeing %p\n",outer);
       outer = NULL;
       free(outer);
     } else {
