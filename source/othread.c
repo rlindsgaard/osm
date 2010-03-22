@@ -241,16 +241,16 @@ int othread_mutex_lock (othread_mutex_t *mutex)
     return EINVAL;
   if(mutex->owner == current)
     return EDEADLK;
-    if(mutex->locked)
-    {
-      //Get new active thread from ready queue
-      switch_thread(&mutex->waiting,&ready,WAITING);
-    } else {
-      //The mutex is not locked
-      //Lock the mutex
-      mutex->owner = current;
-      mutex->locked = 1;
-    }
+  if(mutex->locked)
+  {
+    //Get new active thread from ready queue
+    switch_thread(&mutex->waiting,&ready,WAITING);
+  } else {
+    //The mutex is not locked
+    //Lock the mutex
+    mutex->owner = current;
+    mutex->locked = 1;
+  }
   return 0;
 }
 
