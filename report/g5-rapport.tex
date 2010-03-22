@@ -13,14 +13,26 @@ Alexander Winther Uldall - 2908872013}
 \begin{document}
 \maketitle
 \newpage
+\section{}
+Vores struktur er opbygget af en pointer til et array. Der skal være plads til $2^{10} = 1024$
+elementer. Denne struktur bruges både til den ydre og den indre tabel. Teknisk set allokerer vi et
+2-dimensionelt array, men skulle vi allokere alle pladser med det samme ville dette sluge rigtig
+meget plads som vi sandsynligvis ikke har brug for. Vi allokerer i stedet de indre sider {\it on
+demand} således at en side først oprettes når den bliver tilgået.
 
-\section{G5.2}
-lalala
+\subsection{ptable\_set}
+Først hentes den indre og ydre page med bit-operatorer, samt ofsettet. Siden bliver sat til {\tt
+NULL} hvis page argumentet er {\tt NULL} og ellers oprettes siden (hvis den ikke allerede
+eksisterer) og bliver tildelt en værdi.
+\subsection{ptable\_get}
+Den eneste logik der er brug for i {\tt ptable\_get} er et tjek om den ydre side eksisterer (ellers
+risikerer vi segfault ved næste operation) og hvis den gør, returneres den page som den indre tabel
+peger på. Det kan lade sig gøre at returnere direkte da den vil være sat til {\tt NULL} hvis den
+ikke har fået tildelt en værdi grundet {\tt calloc} kaldet i {\tt ptable\_set}.
+\subsection{}
+\section{Sideerstatning}
 
- \subsection{Sideerstatning}
-
-
- \begin{tabular}{l | c | c | c | c}
+\begin{tabular}{l | c | c | c | c}
 
 t+1\\
 Sideplads    & 0 & 1 & 2 & 3\\
