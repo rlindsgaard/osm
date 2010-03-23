@@ -13,23 +13,36 @@ Alexander Winther Uldall - 2908872013}
 \begin{document}
 \maketitle
 \newpage
-\section{}
-Vores struktur er opbygget af en pointer til et array. Der skal være plads til $2^{10} = 1024$
+\section{Implementering af {\tt ptable}}
+Vores struktur består af en pointer til et array. Der skal være plads til $2^{10} = 1024$
 elementer. Denne struktur bruges både til den ydre og den indre tabel. Teknisk set allokerer vi et
 2-dimensionelt array, men skulle vi allokere alle pladser med det samme ville dette sluge rigtig
 meget plads som vi sandsynligvis ikke har brug for. Vi allokerer i stedet de indre sider {\it on
-demand} således at en side først oprettes når den bliver tilgået.
+demand} således at en side først oprettes når den bliver tilgået. 
 
 \subsection{ptable\_set}
 Først hentes den indre og ydre page med bit-operatorer, samt ofsettet. Siden bliver sat til {\tt
 NULL} hvis page argumentet er {\tt NULL} og ellers oprettes siden (hvis den ikke allerede
-eksisterer) og bliver tildelt en værdi.
+eksisterer) og bliver tildelt en værdi. Offset bruges ikke da den jo først skal bruges på den
+specifkke page.
 \subsection{ptable\_get}
 Den eneste logik der er brug for i {\tt ptable\_get} er et tjek om den ydre side eksisterer (ellers
 risikerer vi segfault ved næste operation) og hvis den gør, returneres den page som den indre tabel
 peger på. Det kan lade sig gøre at returnere direkte da den vil være sat til {\tt NULL} hvis den
 ikke har fået tildelt en værdi grundet {\tt calloc} kaldet i {\tt ptable\_set}.
-\subsection{}
+\subsection{Korrekthed og kørsel af tests}
+I opgavebeskrivelsen står at vi skal se bort fra 64 bit adresser mv. vi har derfor valgt at "antage"
+at programmet køres på en 32-bits maskine.
+Vi tester opførslen for 2 forskellige sider således at vi sikrer os at ingen af de operationerne
+påvirker dem begge (f.eks. free på den ene også free'er den anden)
+Til at starte med testes også for om dataene virkelig er unitialiserede.
+
+En sidste ting der kan testes for er om dataene også behandles forskelligt når kun den indre tabel
+er forskellig. Det er tydeligt at se i koden og vi har derfor valgt ikke at gøre dette.
+
+Vi har en memory leak som ikke er ordnet. Dette skyldes højst sandsynligt at vi allokerer plads i
+{\tt ptable\_set} men at vi aldrig får deallokeret dette. En måde at gøre det på, er ved at holde
+styr på hukommelsen i tabel-strukturen og free'e hele den indre tabel når det ses at denne er tom.
 \section{Sideerstatning}
 
 \begin{tabular}{l | c | c | c | c}
