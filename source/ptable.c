@@ -24,34 +24,24 @@ void ptable_set(ptabel_t *pt, void *laddr, void *page) {
     uintptr_t la = (uintptr_t)laddr;
     uintptr_t p1;
     uintptr_t p2;
-    uintptr_t offset;
     ptabel_t * outer;
-    ptabel_t * inner;
     
     p1 = (la >> 12) & 0x3ff;
     p2 = (la >> 22) & 0x3ff;
-    offset = la & 0x3ff;
-    outer = pt->inner[p2];
-    printf("p1: %d p2: %d offset %d\n",(int)p1,(int)p2,(int)offset);
+    
     if(page == NULL) 
     {
-      pt->inner[p2] = NULL;
-      free(outer->inner);
+      outer = pt->inner[p2];
+      outer->inner[p1] = NULL;
+      free(outer->inner[p1]);
     } else {
-      if(outer == NULL)
+      if(pt->inner[p2] == NULL)
       {
         pt->inner[p2] = calloc(1,sizeof(ptabel_t));
-      }
-      printf("lalla\n");
-    outer = pt->inner[p2];
-      if(outer->inner[p1] == NULL)
-      {
-        outer->inner[p1] = calloc(1,4096);
-      }
-      printf("inner address %p\n",outer->inner[p1]);
-      inner = outer->inner[p1]+offset;
-      inner = page;
-      printf("inner is now %p\n",outer->inner[p1]+offset);
+      }     
+      
+      outer = pt->inner[p2];
+      outer->inner[p1] = page;
     }
 }
 
@@ -62,19 +52,17 @@ adresse ikke eksisterer, returneres 'NULL'.
 */
 void *ptable_get(ptabel_t *pt, void *laddr) {
     uintptr_t la = (uintptr_t)laddr;
-  printf("getting %d\n",(int) la);
     uintptr_t p1;
     uintptr_t p2;
     ptabel_t * outer;
-    uintptr_t offset;
+    
     p1 = (la >> 12) & 0x3ff;
     p2 = (la >> 22) & 0x3ff;
-    offset = la & 0x3ff;
-    printf("p1: %d p2: %d offset %d\n",(int)p1,(int)p2,(int)offset);
-    if(pt->inner[p2] != NULL)
+    outer = pt->inner[p2];
+
+    if(outer != NULL)
     {
-      outer = pt->inner[p2];
-      return outer->inner[p1]+offset;
+      return outer->inner[p1];
     }    
     return NULL;
 }
@@ -83,16 +71,30 @@ void *ptable_get(ptabel_t *pt, void *laddr) {
 int main(int argc, char *argv[]) {
     /* Test program */
     ptabel_t *pt = calloc(1,sizeof(ptabel_t));
-    int page = 123535;
-    void * laddr =0x2355ff; 
-    void * faddr =0xdddf1252ff; 
-    ptable_set(pt,laddr,(void *) page);
-    page = (*(int) ptable_get(pt,laddr));
-
-    printf("Returned %d\n", page);
-/*    ptable_set(pt,laddr,NULL);
-    printf("laddr is now %p\n",ptable_get(pt,laddr));
-    ptable_set(pt,faddr,(void *) page);
-    printf("Trying a very large address %d\n",(int) ptable_get(pt,faddr));*/
+    void *page = calloc(1,4096);
+    void *page2 = calloc(1,4096);
+    int * someval = page+5;
+    *someval = 123535;
+    int * someotherval = page2+5;
+    *someotherval = 7547547;
+    void * laddr = (void *)0x2355ff;
+    void * laddr2 = (void *) 0x123456;
+    
+    printf("Data initialised at %p\n",page);
+    printf("Getting uninitalised data %p\n",ptable_get(pt,laddr));
+    printf("Setting %p to %p\n",laddr,page);
+    ptable_set(pt,laddr,page);
+    printf("Setting %p to %p\n",laddr2,page2);
+    ptable_set(pt,laddr2,page2);
+    someval = (int*) (ptable_get(pt,laddr)+5);
+    someotherval = (int*) (ptable_get(pt,laddr)+5);
+    printf("Values are readable %d %d\n",*someval,*someotherval);
+    printf("Now it exists at %p %p\n",ptable_get(pt,laddr),ptable_get(pt,laddr2));
+    ptable_set(pt,laddr,NULL);
+    printf("Now it doesn't %p but the other does %p\n",ptable_get(pt,laddr),ptable_get(pt,laddr2));
+    ptable_set(pt,laddr2,NULL);
+    free(page);
+    free(page2);
+    free(pt);
     return 0;
 }
